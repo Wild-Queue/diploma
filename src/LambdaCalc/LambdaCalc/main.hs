@@ -31,37 +31,11 @@ type Verbosity  = Int
 putStrV :: Verbosity -> String -> IO ()
 putStrV v s = when (v > 1) $ putStrLn s
 
--- runFile :: (Print a, Show a) => Verbosity -> ParseFun a -> FilePath -> IO ()
--- runFile v p f = putStrLn f >> readFile f >>= run v p
+runFile :: Verbosity -> ParseFun Program -> FilePath -> IO ()
+runFile v p f = putStrLn f >> readFile f >>= run v p
 
--- run :: (Print a, Show a) => Verbosity -> ParseFun a -> String -> IO ()
--- run v p s =
---   case p ts of
---     Left err -> do
---       putStrLn "\nParse              Failed...\n"
---       putStrV v "Tokens:"
---       mapM_ (putStrV v . showPosToken . mkPosToken) ts
---       putStrLn err
---       exitFailure
---     Right tree -> do
---       putStrLn "\nParse Successful!"
---       analyseTree v tree
---   where
---   ts = myLexer s
---   showPosToken ((l,c),t) = concat [ show l, ":", show c, "\t", show t ]
-
--- analyseTree :: (Show a, Print a) => Int -> a -> IO ()
--- analyseTree v tree = do
---   case tree of 
---     AProgram programTree -> do
---       case transProgram tree of 
---         Left a -> do
---           putStrLn a
---         Right b -> do
---           putStrV v $ "\nParse result\n" ++ b
-
-runTemp :: Verbosity -> ParseFun Program -> String -> IO ()
-runTemp v p s =
+run :: Verbosity -> ParseFun Program -> String -> IO ()
+run v p s =
   case p ts of
     Left err -> do
       putStrLn "\nParse              Failed...\n"
@@ -71,20 +45,20 @@ runTemp v p s =
       exitFailure
     Right tree -> do
       putStrLn "\nParse Successful!"
-      analyseTreeTemp v tree
+      analyseTree v tree
   where
   ts = myLexer s
   showPosToken ((l,c),t) = concat [ show l, ":", show c, "\t", show t ]
 
-analyseTreeTemp :: Int -> Program -> IO ()
-analyseTreeTemp v tree = do
+analyseTree :: Int -> Program -> IO ()
+analyseTree v tree = do
   case tree of 
     AProgram programTree -> do
       case transProgram tree of 
         Left a -> do
           putStrLn a
         Right b -> do
-          putStrV v $ "\nParse result\n" ++ b
+          showTree v b
 
 showTree :: (Show a, Print a) => Int -> a -> IO ()
 showTree v tree = do
@@ -106,8 +80,7 @@ main = do
   args <- getArgs
   case args of
     ["--help"] -> usage
-    []         -> getContents >>= runTemp 2 pProgram
-    -- []         -> getContents >>= putStrLn pProgram
-    -- "-s":fs    -> mapM_ (runFile 0 pProgram) fs
-    -- fs         -> mapM_ (runFile 2 pProgram) fs
+    []         -> getContents >>= run 2 pProgram
+    "-s":fs    -> mapM_ (runFile 0 pProgram) fs
+    fs         -> mapM_ (runFile 2 pProgram) fs
 

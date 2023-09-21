@@ -28,7 +28,7 @@ $u = [. \n]          -- universal: any character
 
 -- Symbols and non-identifier-like reserved words
 
-@rsyms = \λ | \. | \( | \) | \+ | \-
+@rsyms = \\ | \. | \( | \) | \+ | \-
 
 :-
 
@@ -153,7 +153,7 @@ eitherResIdent tv s = treeFind resWords
 resWords :: BTree
 resWords =
   b "-" 4
-    (b ")" 2 (b "(" 1 N N) (b "+" 3 N N)) (b "\955" 6 (b "." 5 N N) N)
+    (b ")" 2 (b "(" 1 N N) (b "+" 3 N N)) (b "\\" 6 (b "." 5 N N) N)
   where
   b s n = B bs (TS bs n)
     where

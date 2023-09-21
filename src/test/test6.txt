@@ -1,1 +1,6 @@
 ((lambda x . lambda y . ((x y) z)) y)
+
+lambda y . ((lambda x . lambda y . ((x y) z)) y)
+
+
+(LambdaCalc.LambdaCalculus.Abs.Binder (LambdaCalc.LambdaCalculus.Abs.Var (LambdaCalc.LambdaCalculus.Abs.Identifier (LambdaCalc.LambdaCalculus.Abs.Ident "y"))) (LambdaCalc.LambdaCalculus.Abs.Var (LambdaCalc.LambdaCalculus.Abs.Bound 0)))

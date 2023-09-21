@@ -23,7 +23,7 @@ data Term
     | Minus Term Term
   deriving (C.Eq, C.Ord, C.Show, C.Read)
 
-data Variable = Identifier Ident
+data Variable = Identifier Ident | Bound Integer
   deriving (C.Eq, C.Ord, C.Show, C.Read)
 
 newtype Ident = Ident String

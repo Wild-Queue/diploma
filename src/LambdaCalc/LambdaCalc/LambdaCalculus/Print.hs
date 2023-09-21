@@ -157,3 +157,4 @@ instance Print LambdaCalc.LambdaCalculus.Abs.Term where
 instance Print LambdaCalc.LambdaCalculus.Abs.Variable where
   prt i = \case
     LambdaCalc.LambdaCalculus.Abs.Identifier id_ -> prPrec i 0 (concatD [prt 0 id_])
+    LambdaCalc.LambdaCalculus.Abs.Bound n -> prPrec i 0 (concatD [doc (showString "BOUND"), doc (showString "("), prt 0 n, doc (showString ")")])

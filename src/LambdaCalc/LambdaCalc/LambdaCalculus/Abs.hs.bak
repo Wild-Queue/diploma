@@ -14,7 +14,7 @@ data Program = AProgram Term
   deriving (C.Eq, C.Ord, C.Show, C.Read)
 
 data Term
-    = Var Ident
+    = Var Variable
     | IntConst Integer
     | DoubleConst Double
     | Binder Variable Term

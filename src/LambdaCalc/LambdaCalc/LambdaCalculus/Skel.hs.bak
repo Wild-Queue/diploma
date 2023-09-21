@@ -25,7 +25,7 @@ transProgram x = case x of
 
 transTerm :: LambdaCalc.LambdaCalculus.Abs.Term -> Result
 transTerm x = case x of
-  LambdaCalc.LambdaCalculus.Abs.Var ident -> failure x
+  LambdaCalc.LambdaCalculus.Abs.Var variable -> failure x
   LambdaCalc.LambdaCalculus.Abs.IntConst integer -> failure x
   LambdaCalc.LambdaCalculus.Abs.DoubleConst double -> failure x
   LambdaCalc.LambdaCalculus.Abs.Binder variable term -> failure x

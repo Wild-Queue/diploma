@@ -36,3 +36,4 @@ transTerm x = case x of
 transVariable :: LambdaCalc.LambdaCalculus.Abs.Variable -> Result
 transVariable x = case x of
   LambdaCalc.LambdaCalculus.Abs.Identifier ident -> failure x
+  LambdaCalc.LambdaCalculus.Abs.Bound integer -> failure x

@@ -10,3 +10,4 @@ Minus.          Term ::= Term "-" Term  ;
 _.              Term ::= "(" Term ")";
 
 Identifier.     Variable ::= Ident;
+Bound.          Variable ::= "BOUND" "(" Integer ")";

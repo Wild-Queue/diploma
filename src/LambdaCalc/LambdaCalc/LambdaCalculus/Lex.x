@@ -154,7 +154,7 @@ resWords :: BTree
 resWords =
   b "-" 4
     (b ")" 2 (b "(" 1 N N) (b "+" 3 N N))
-    (b "lambda" 6 (b "." 5 N N) N)
+    (b "BOUND" 6 (b "." 5 N N) (b "lambda" 7 N N))
   where
   b s n = B bs (TS bs n)
     where

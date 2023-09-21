@@ -6,8 +6,9 @@
 
 module LambdaCalc.Substitute where
 
-import Prelude (($), Either(..), String, (++), Show, show, Int, Maybe (..), fst, snd, otherwise, (==), (+))
+import Prelude (($), Either(..), String, (++), Show, show, Integer, Maybe (..), fst, snd, otherwise, (==), (+))
 import qualified LambdaCalc.LambdaCalculus.Abs
+import LambdaCalc.UpdateNewTerm ( updateNewTerm )
 
 type Result = Either String LambdaCalc.LambdaCalculus.Abs.Program
 type SubstitutionTerm = Maybe LambdaCalc.LambdaCalculus.Abs.Term
@@ -27,30 +28,40 @@ substProgram x = case x of
         Left err -> Left err
         Right terms -> Right (LambdaCalc.LambdaCalculus.Abs.AProgram terms)
 
-substTerm :: LambdaCalc.LambdaCalculus.Abs.Term -> Int -> SubstitutionTerm -> Either String LambdaCalc.LambdaCalculus.Abs.Term
+substTerm :: LambdaCalc.LambdaCalculus.Abs.Term -> Integer -> SubstitutionTerm -> Either String LambdaCalc.LambdaCalculus.Abs.Term
 substTerm x substNumber newTerm = case x of
-  (LambdaCalc.LambdaCalculus.Abs.Var (LambdaCalc.LambdaCalculus.Abs.Identifier (LambdaCalc.LambdaCalculus.Abs.Ident index))) ->
-    case newTerm of 
-      Nothing -> Right x
-      Just nt -> 
-        if show (substNumber) == index 
-          then Right nt
-          else Right x
+  LambdaCalc.LambdaCalculus.Abs.Var variable ->
+    case substVariable variable of 
+      Left err -> Left err
+      Right (Left identifier) -> Right (LambdaCalc.LambdaCalculus.Abs.Var identifier)
+      Right (Right index) -> 
+        case newTerm of 
+          Nothing -> Right (LambdaCalc.LambdaCalculus.Abs.Var (LambdaCalc.LambdaCalculus.Abs.Bound index))
+          Just nt -> 
+            if substNumber == index
+              then Right nt
+              else Right (LambdaCalc.LambdaCalculus.Abs.Var (LambdaCalc.LambdaCalculus.Abs.Bound index))
 
   LambdaCalc.LambdaCalculus.Abs.IntConst integer -> Right (LambdaCalc.LambdaCalculus.Abs.IntConst integer)
   LambdaCalc.LambdaCalculus.Abs.DoubleConst double -> Right (LambdaCalc.LambdaCalculus.Abs.DoubleConst double)
   LambdaCalc.LambdaCalculus.Abs.Binder variable term -> 
     case newTerm of 
-      Nothing -> Right x
-      Just nt -> case (substTerm term (substNumber+1) newTerm) of 
-                  Left a -> Left a
-                  Right b -> Right (LambdaCalc.LambdaCalculus.Abs.Binder variable b)
+      Nothing -> 
+        case substTerm term substNumber newTerm of 
+          Left err -> Left err
+          Right t -> Right (LambdaCalc.LambdaCalculus.Abs.Binder variable t)
+      Just nt -> 
+        case (updateNewTerm nt (-1)) of 
+          Left err -> Left err
+          Right updatedTerm -> 
+            case (substTerm term (substNumber+1) (Just updatedTerm)) of 
+              Left a -> Left a
+              Right b -> Right (LambdaCalc.LambdaCalculus.Abs.Binder variable b)
   LambdaCalc.LambdaCalculus.Abs.Application term1 term2 -> do 
     newTerm1 <- substTerm term1 substNumber newTerm
     newTerm2 <- substTerm term2 substNumber newTerm
     case newTerm1 of 
-      LambdaCalc.LambdaCalculus.Abs.Binder v binderTerm ->
-        substTerm binderTerm 0 (Just newTerm2)
+      LambdaCalc.LambdaCalculus.Abs.Binder v binderTerm -> substTerm binderTerm 0 (Just newTerm2)
       _ -> Right (LambdaCalc.LambdaCalculus.Abs.Application newTerm1 newTerm2)
 
   LambdaCalc.LambdaCalculus.Abs.Plus term1 term2 -> do 
@@ -63,8 +74,10 @@ substTerm x substNumber newTerm = case x of
     newTerm2 <- substTerm term2 substNumber newTerm
     Right (LambdaCalc.LambdaCalculus.Abs.Minus newTerm1 newTerm2)
 
-substVariable :: LambdaCalc.LambdaCalculus.Abs.Variable -> Either String String
+substVariable :: LambdaCalc.LambdaCalculus.Abs.Variable -> Either String (Either LambdaCalc.LambdaCalculus.Abs.Variable Integer)
 substVariable x = case x of
   LambdaCalc.LambdaCalculus.Abs.Identifier ident -> case substIdent ident of
-    Right (LambdaCalc.LambdaCalculus.Abs.Ident string) -> Right string
+    Right identifier -> Right $ Left $ (LambdaCalc.LambdaCalculus.Abs.Identifier identifier)
     _ -> Left $ "Unexpected case: " ++ show x
+  LambdaCalc.LambdaCalculus.Abs.Bound integer -> Right $ Right $ integer
+  _ -> Left $ "Unexpected case: " ++ show x

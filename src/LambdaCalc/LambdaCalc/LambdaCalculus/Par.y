@@ -32,7 +32,8 @@ import LambdaCalc.LambdaCalculus.Lex
   '+'      { PT _ (TS _ 3) }
   '-'      { PT _ (TS _ 4) }
   '.'      { PT _ (TS _ 5) }
-  'lambda' { PT _ (TS _ 6) }
+  'BOUND'  { PT _ (TS _ 6) }
+  'lambda' { PT _ (TS _ 7) }
   L_Ident  { PT _ (TV $$)  }
   L_doubl  { PT _ (TD $$)  }
   L_integ  { PT _ (TI $$)  }
@@ -63,7 +64,9 @@ Term
   | '(' Term ')' { $2 }
 
 Variable :: { LambdaCalc.LambdaCalculus.Abs.Variable }
-Variable : Ident { LambdaCalc.LambdaCalculus.Abs.Identifier $1 }
+Variable
+  : Ident { LambdaCalc.LambdaCalculus.Abs.Identifier $1 }
+  | 'BOUND' '(' Integer ')' { LambdaCalc.LambdaCalculus.Abs.Bound $3 }
 
 {
 

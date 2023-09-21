@@ -8,7 +8,7 @@ test: ./src/LambdaCalc/LambdaCalc/LambdaCalculus/Test
 
 
 ./src/LambdaCalc/LambdaCalc/main : build
-	ghc ./src/LambdaCalc/LambdaCalc/LambdaCalculus/Abs.hs ./src/LambdaCalc/LambdaCalc/LambdaCalculus/Lex.hs ./src/LambdaCalc/LambdaCalc/LambdaCalculus/Par.hs ./src/LambdaCalc/LambdaCalc/LambdaCalculus/Print.hs ./src/LambdaCalc/LambdaCalc/Analyser.hs ./src/LambdaCalc/LambdaCalc/main.hs
+	ghc ./src/LambdaCalc/LambdaCalc/LambdaCalculus/Abs.hs ./src/LambdaCalc/LambdaCalc/LambdaCalculus/Lex.hs ./src/LambdaCalc/LambdaCalc/LambdaCalculus/Par.hs ./src/LambdaCalc/LambdaCalc/LambdaCalculus/Print.hs ./src/LambdaCalc/LambdaCalc/Analyser.hs ./src/LambdaCalc/LambdaCalc/Substitute.hs ./src/LambdaCalc/LambdaCalc/main.hs
 
 
 run: ./src/LambdaCalc/LambdaCalc/main

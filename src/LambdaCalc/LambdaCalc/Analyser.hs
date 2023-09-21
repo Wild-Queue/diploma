@@ -57,7 +57,7 @@ transTerm x nameDict = case x of
       Left err -> Left err
       Right string -> do
         case returnIndex nameDict string of 
-          Nothing -> Left $ "Unexpectable variable: " ++ string
+          Nothing -> Right (LambdaCalc.LambdaCalculus.Abs.Var (LambdaCalc.LambdaCalculus.Abs.Identifier (LambdaCalc.LambdaCalculus.Abs.Ident string)))
           Just a -> Right (LambdaCalc.LambdaCalculus.Abs.Var (LambdaCalc.LambdaCalculus.Abs.Identifier (LambdaCalc.LambdaCalculus.Abs.Ident (show a))))
 
   LambdaCalc.LambdaCalculus.Abs.IntConst integer -> Right (LambdaCalc.LambdaCalculus.Abs.IntConst integer)
@@ -96,4 +96,4 @@ transVariable :: LambdaCalc.LambdaCalculus.Abs.Variable -> Either String String
 transVariable x = case x of
   LambdaCalc.LambdaCalculus.Abs.Identifier ident -> case transIdent ident of
     Right (LambdaCalc.LambdaCalculus.Abs.Ident string) -> Right string
-    _ -> Left $ "Unexpected case: " ++ show x
+    _ -> Left $ "Unexpected case: " ++ show x;

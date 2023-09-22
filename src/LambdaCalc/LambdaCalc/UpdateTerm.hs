@@ -17,51 +17,51 @@ updateNewIdent :: LambdaCalc.LambdaCalculus.Abs.Ident -> Either String LambdaCal
 updateNewIdent x = case x of
   LambdaCalc.LambdaCalculus.Abs.Ident string -> Right (LambdaCalc.LambdaCalculus.Abs.Ident string)
 
-updateNewTerm :: LambdaCalc.LambdaCalculus.Abs.Term -> Integer -> Either String LambdaCalc.LambdaCalculus.Abs.Term
-updateNewTerm x maxScope = case x of
-  LambdaCalc.LambdaCalculus.Abs.Var variable -> case updateNewVariable variable maxScope of 
+updateNewTerm :: LambdaCalc.LambdaCalculus.Abs.Term -> Integer -> (Integer -> Integer) -> Either String LambdaCalc.LambdaCalculus.Abs.Term
+updateNewTerm x maxScope func = case x of
+  LambdaCalc.LambdaCalculus.Abs.Var variable -> case updateNewVariable variable maxScope func of 
                                                   Left err -> Left err 
                                                   Right upv -> Right (LambdaCalc.LambdaCalculus.Abs.Var upv)
   LambdaCalc.LambdaCalculus.Abs.IntConst integer -> Right (LambdaCalc.LambdaCalculus.Abs.IntConst integer)
   LambdaCalc.LambdaCalculus.Abs.DoubleConst double -> Right (LambdaCalc.LambdaCalculus.Abs.DoubleConst double)
   LambdaCalc.LambdaCalculus.Abs.Binder variable term -> 
-    case updateNewVariable variable maxScope of 
+    case updateNewVariable variable maxScope func of 
       Left err -> Left err
       Right newVariable -> 
-        case updateNewTerm term (maxScope+1) of 
+        case updateNewTerm term (maxScope+1) func of 
           Left err -> Left err
           Right newTerm -> Right (LambdaCalc.LambdaCalculus.Abs.Binder newVariable newTerm)
 
   LambdaCalc.LambdaCalculus.Abs.Application term1 term2 -> do 
-    case updateNewTerm term1 maxScope of 
+    case updateNewTerm term1 maxScope func of 
       Left err -> Left err
       Right newTerm1 -> 
-        case updateNewTerm term2 maxScope of 
+        case updateNewTerm term2 maxScope func of 
           Left err -> Left err
           Right newTerm2 -> Right (LambdaCalc.LambdaCalculus.Abs.Application newTerm1 newTerm2)
 
   LambdaCalc.LambdaCalculus.Abs.Plus term1 term2 -> do
-    case updateNewTerm term1 maxScope of 
+    case updateNewTerm term1 maxScope func of 
       Left err -> Left err
       Right newTerm1 -> 
-        case updateNewTerm term2 maxScope of 
+        case updateNewTerm term2 maxScope func of 
           Left err -> Left err
           Right newTerm2 -> Right (LambdaCalc.LambdaCalculus.Abs.Plus newTerm1 newTerm2)
 
   LambdaCalc.LambdaCalculus.Abs.Minus term1 term2 ->  do
-    case updateNewTerm term1 maxScope of 
+    case updateNewTerm term1 maxScope func of 
       Left err -> Left err
       Right newTerm1 -> 
-        case updateNewTerm term2 maxScope of 
+        case updateNewTerm term2 maxScope func of 
           Left err -> Left err
           Right newTerm2 -> Right (LambdaCalc.LambdaCalculus.Abs.Minus newTerm1 newTerm2)
 
-updateNewVariable :: LambdaCalc.LambdaCalculus.Abs.Variable -> Integer -> Either String LambdaCalc.LambdaCalculus.Abs.Variable
-updateNewVariable x maxScope = case x of
+updateNewVariable :: LambdaCalc.LambdaCalculus.Abs.Variable -> Integer -> (Integer -> Integer) -> Either String LambdaCalc.LambdaCalculus.Abs.Variable
+updateNewVariable x maxScope func = case x of
   LambdaCalc.LambdaCalculus.Abs.Identifier ident -> case updateNewIdent ident of
     Right identifier -> Right $ (LambdaCalc.LambdaCalculus.Abs.Identifier identifier)
     _ -> Left $ "Unexpected case: " ++ show x
   LambdaCalc.LambdaCalculus.Abs.Bound integer -> if (integer > maxScope)
-                                                  then Right $ (LambdaCalc.LambdaCalculus.Abs.Bound (integer+1))
+                                                  then Right $ (LambdaCalc.LambdaCalculus.Abs.Bound (func integer))
                                                   else Right $ (LambdaCalc.LambdaCalculus.Abs.Bound integer)
   _ -> Left $ "Unexpected case: " ++ show x

@@ -51,17 +51,19 @@ substTerm x substNumber newTerm = case x of
           Left err -> Left err
           Right t -> Right (LambdaCalc.LambdaCalculus.Abs.Binder variable t)
       Just nt -> 
-        case (updateNewTerm nt (-1)) of 
+        case (updateNewTerm nt (-1) (\x -> x+1)) of 
           Left err -> Left err
-          Right updatedTerm -> 
-            case (substTerm term (substNumber+1) (Just updatedTerm)) of 
+          Right updatedRightTerm -> 
+            case (substTerm term (substNumber+1) (Just updatedRightTerm)) of 
               Left a -> Left a
               Right b -> Right (LambdaCalc.LambdaCalculus.Abs.Binder variable b)
   LambdaCalc.LambdaCalculus.Abs.Application term1 term2 -> do 
     newTerm1 <- substTerm term1 substNumber newTerm
     newTerm2 <- substTerm term2 substNumber newTerm
     case newTerm1 of 
-      LambdaCalc.LambdaCalculus.Abs.Binder v binderTerm -> substTerm binderTerm 0 (Just newTerm2)
+      LambdaCalc.LambdaCalculus.Abs.Binder v binderTerm -> do 
+        notUpdatedIdexs <- substTerm binderTerm 0 (Just newTerm2)
+        updateNewTerm notUpdatedIdexs (0) (\x -> x + (-1)) 
       _ -> Right (LambdaCalc.LambdaCalculus.Abs.Application newTerm1 newTerm2)
 
   LambdaCalc.LambdaCalculus.Abs.Plus term1 term2 -> do 

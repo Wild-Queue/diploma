@@ -23,14 +23,12 @@ substTerm x substIndex newTerm = case x of
       Left identifier -> Var identifier
       Right index -> 
         if substIndex == index 
-          then newTerm
+          then shiftTerm newTerm 0 substIndex
           else Var (Bound index)
 
   IntConst integer -> IntConst integer
   DoubleConst double -> DoubleConst double
-  Binder variable term -> do
-    let upShiftedTerm = shiftTerm newTerm 0 (\x -> x + 1) -- lambda . (lambda (1 0)) <- 1 => lambda (1 0) <- 1 [=>] (1 0) <- 2 => lambda (2 0)
-    Binder variable (substTerm term (substIndex+1) upShiftedTerm) 
+  Binder variable term -> Binder variable (substTerm term (substIndex+1) newTerm) 
 
   Application term1 term2 -> do 
     let newTerm1 = substTerm term1 substIndex newTerm
@@ -38,12 +36,11 @@ substTerm x substIndex newTerm = case x of
     case newTerm1 of 
       Binder v binderTerm -> do 
         let beforeDownShift = substTerm binderTerm 0 newTerm2
-        shiftTerm beforeDownShift 1 (\x -> x + (-1))
+        shiftTerm beforeDownShift 1 (-1)
       _ -> Application newTerm1 newTerm2
 
   Plus term1 term2 -> 
     Plus (substTerm term1 substIndex newTerm) (substTerm term2 substIndex newTerm)
-
   Minus term1 term2 -> 
     Minus (substTerm term1 substIndex newTerm) (substTerm term2 substIndex newTerm)
 

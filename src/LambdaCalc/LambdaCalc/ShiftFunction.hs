@@ -15,24 +15,24 @@ shiftIdent :: Ident -> Ident
 shiftIdent x = case x of
   Ident string -> Ident string
 
-shiftTerm :: Term -> Integer -> (Integer -> Integer) -> Term
-shiftTerm x cutoff func = case x of
-  Var variable -> Var (shiftVariable variable cutoff func) 
+shiftTerm :: Term -> Integer -> Integer -> Term
+shiftTerm x cutoff d = case x of
+  Var variable -> Var (shiftVariable variable cutoff d) 
   IntConst integer -> IntConst integer
   DoubleConst double -> DoubleConst double
   Binder variable term -> 
-    Binder (shiftVariable variable cutoff func) (shiftTerm term (cutoff+1) func)
+    Binder (shiftVariable variable cutoff d) (shiftTerm term (cutoff+1) d)
   Application term1 term2 ->
-    Application (shiftTerm term1 cutoff func) (shiftTerm term2 cutoff func)
+    Application (shiftTerm term1 cutoff d) (shiftTerm term2 cutoff d)
   Plus term1 term2 -> 
-    Plus (shiftTerm term1 cutoff func) (shiftTerm term2 cutoff func)
+    Plus (shiftTerm term1 cutoff d) (shiftTerm term2 cutoff d)
   Minus term1 term2 ->
-    Minus (shiftTerm term1 cutoff func) (shiftTerm term2 cutoff func)
+    Minus (shiftTerm term1 cutoff d) (shiftTerm term2 cutoff d)
     
-shiftVariable :: Variable -> Integer -> (Integer -> Integer) -> Variable
-shiftVariable x cutoff func = case x of
+shiftVariable :: Variable -> Integer -> Integer -> Variable
+shiftVariable x cutoff d = case x of
   Identifier ident -> Identifier (shiftIdent ident)
   Bound integer -> 
     if (integer >= cutoff)
-      then Bound (func integer)
+      then Bound (integer + d)
       else Bound integer

@@ -33,7 +33,7 @@ parseIndexedTerm x = case x of
     case newTerm1 of 
       Binder variable binderTerm -> do 
         let beforeDownShift = substTerm binderTerm 0 newTerm2
-        shiftTerm beforeDownShift 1 (\x -> x + (-1))
+        shiftTerm beforeDownShift 1 (-1)
       _ -> Application newTerm1 newTerm2
     
   Plus term1 term2 -> Plus (parseIndexedTerm term1) (parseIndexedTerm term2)

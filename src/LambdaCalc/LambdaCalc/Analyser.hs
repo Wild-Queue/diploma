@@ -8,8 +8,9 @@ module LambdaCalc.Analyser where
 
 import Prelude (($), Either(..), String, (++), Show, show, Integer, Maybe (..), fst, snd, otherwise, (==), (+))
 import qualified LambdaCalc.LambdaCalculus.Abs
+import LambdaCalc.LambdaCalculus.Abs ( Program(..), Term(..), Ident(..), Variable(..) )
 
-type Result = Either String LambdaCalc.LambdaCalculus.Abs.Program
+type Result = Either String Program
 
 updateValues :: [(String, Integer)] -> [(String, Integer)]
 updateValues [] = []
@@ -37,65 +38,65 @@ addValue (x:xs) value
 
 
 
-transIdent :: LambdaCalc.LambdaCalculus.Abs.Ident -> Either String LambdaCalc.LambdaCalculus.Abs.Ident
+transIdent :: Ident -> Either String Ident
 transIdent x = case x of
-  LambdaCalc.LambdaCalculus.Abs.Ident string -> Right (LambdaCalc.LambdaCalculus.Abs.Ident string)
+  Ident string -> Right (Ident string)
   _ -> Left $ "Unexpected case: " ++ show x
 
-transProgram :: LambdaCalc.LambdaCalculus.Abs.Program -> Either String LambdaCalc.LambdaCalculus.Abs.Program
+transProgram :: Program -> Either String Program
 transProgram x = case x of
-    LambdaCalc.LambdaCalculus.Abs.AProgram term -> do 
+    AProgram term -> do 
       case transTerm term [] of 
         Left err -> Left err
-        Right terms -> Right (LambdaCalc.LambdaCalculus.Abs.AProgram terms)
+        Right terms -> Right (AProgram terms)
     _ -> Left $ "Unexpected case: " ++ show x
 
-transTerm :: LambdaCalc.LambdaCalculus.Abs.Term -> [(String, Integer)] -> Either String LambdaCalc.LambdaCalculus.Abs.Term
+transTerm :: Term -> [(String, Integer)] -> Either String Term
 transTerm x nameDict = case x of
-  LambdaCalc.LambdaCalculus.Abs.Var variable -> 
+  Var variable -> 
     case transVariable variable nameDict of 
       Left err -> Left err
-      Right newVar -> Right (LambdaCalc.LambdaCalculus.Abs.Var newVar)
-  LambdaCalc.LambdaCalculus.Abs.IntConst integer -> Right (LambdaCalc.LambdaCalculus.Abs.IntConst integer)
-  LambdaCalc.LambdaCalculus.Abs.DoubleConst double -> Right (LambdaCalc.LambdaCalculus.Abs.DoubleConst double)
-  LambdaCalc.LambdaCalculus.Abs.Binder variable term -> do 
+      Right newVar -> Right (Var newVar)
+  IntConst integer -> Right (IntConst integer)
+  DoubleConst double -> Right (DoubleConst double)
+  Binder variable term -> do 
     case variable of 
-      LambdaCalc.LambdaCalculus.Abs.Identifier (LambdaCalc.LambdaCalculus.Abs.Ident varName) ->
+      Identifier (Ident varName) ->
         case transTerm term (addValue (updateValues nameDict) varName) of 
           Left err -> Left err
-          Right term -> Right (LambdaCalc.LambdaCalculus.Abs.Binder (LambdaCalc.LambdaCalculus.Abs.Identifier (LambdaCalc.LambdaCalculus.Abs.Ident "")) term)
+          Right term -> Right (Binder (Identifier (Ident "")) term)
       
-  LambdaCalc.LambdaCalculus.Abs.Application term1 term2 -> do 
+  Application term1 term2 -> do 
     case transTerm term1 nameDict of 
       Left err -> Left err
       Right updatedTerm1 -> do 
         case transTerm term2 nameDict of
           Left err -> Left err
-          Right updatedTerm2 -> Right (LambdaCalc.LambdaCalculus.Abs.Application updatedTerm1 updatedTerm2)
+          Right updatedTerm2 -> Right (Application updatedTerm1 updatedTerm2)
 
-  LambdaCalc.LambdaCalculus.Abs.Plus term1 term2 -> do 
+  Plus term1 term2 -> do 
     case transTerm term1 nameDict of 
       Left err -> Left err
       Right updatedTerm1 -> do 
         case transTerm term2 nameDict of
           Left err -> Left err
-          Right updatedTerm2 -> Right (LambdaCalc.LambdaCalculus.Abs.Plus updatedTerm1 updatedTerm2)
+          Right updatedTerm2 -> Right (Plus updatedTerm1 updatedTerm2)
 
-  LambdaCalc.LambdaCalculus.Abs.Minus term1 term2 ->  do 
+  Minus term1 term2 ->  do 
     case transTerm term1 nameDict of 
       Left err -> Left err
       Right updatedTerm1 -> do 
         case transTerm term2 nameDict of
           Left err -> Left err
-          Right updatedTerm2 -> Right (LambdaCalc.LambdaCalculus.Abs.Minus updatedTerm1 updatedTerm2)
+          Right updatedTerm2 -> Right (Minus updatedTerm1 updatedTerm2)
 
-transVariable :: LambdaCalc.LambdaCalculus.Abs.Variable -> [(String, Integer)] -> Either String LambdaCalc.LambdaCalculus.Abs.Variable
+transVariable :: Variable -> [(String, Integer)] -> Either String Variable
 transVariable x nameDict = case x of
-  LambdaCalc.LambdaCalculus.Abs.Identifier ident -> 
+  Identifier ident -> 
     case transIdent ident of
-      Right (LambdaCalc.LambdaCalculus.Abs.Ident string) -> 
+      Right (Ident string) -> 
         case returnIndex nameDict string of 
-          Nothing -> Right (LambdaCalc.LambdaCalculus.Abs.Identifier ident)
-          Just index -> Right (LambdaCalc.LambdaCalculus.Abs.Bound index)
+          Nothing -> Right (Identifier ident)
+          Just index -> Right (Bound index)
       _ -> Left $ "Unexpected case: " ++ show x;
-  LambdaCalc.LambdaCalculus.Abs.Bound integer -> Right (LambdaCalc.LambdaCalculus.Abs.Bound integer)
+  Bound integer -> Right (Bound integer)

@@ -23,7 +23,7 @@ import LambdaCalc.LambdaCalculus.Lex   ( Token, mkPosToken )
 import LambdaCalc.LambdaCalculus.Par   ( pProgram, myLexer )
 import LambdaCalc.LambdaCalculus.Print ( Print, printTree )
 import LambdaCalc.Analyser  ( transProgram )
-import LambdaCalc.Substitute  ( substProgram )
+import LambdaCalc.IndexedTreeParser ( parseIndexedProgram )
 
 type Err        = Either String
 type ParseFun a = [Token] -> Err a
@@ -56,16 +56,12 @@ analyseTree v tree = do
   case tree of 
     AProgram programTree -> do
       case transProgram tree of 
-        Left a -> do
+        Left err -> do
           putStrLn "Error in substitution with indexes"
-          putStrLn a
-        Right b -> do
-          showTree v b
-          case substProgram b of 
-            Left a -> do
-              putStrLn "Error in final substitution"
-              putStrLn a 
-            Right b -> showTree v b
+          putStrLn err
+        Right indexedTree -> do
+          showTree v indexedTree
+          showTree v (parseIndexedProgram indexedTree)
 
 showTree :: (Show a, Print a) => Int -> a -> IO ()
 showTree v tree = do

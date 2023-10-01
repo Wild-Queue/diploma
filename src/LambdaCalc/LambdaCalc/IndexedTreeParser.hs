@@ -6,38 +6,40 @@
 
 module LambdaCalc.IndexedTreeParser where
 
-import Prelude (($), Either(..), String, (++), Show, show)
+import Prelude (($), Either(..), String, (++), Show, show, (+))
 import qualified LambdaCalc.LambdaCalculus.Abs
 import LambdaCalc.LambdaCalculus.Abs ( Program(..), Term(..), Ident(..), Variable(..) )
+import LambdaCalc.Substitute ( substTerm )
+import LambdaCalc.ShiftFunction ( shiftTerm )
 
 
-parseIdent :: Ident -> Ident
-parseIdent x = case x of
+parseIndexedIdent :: Ident -> Ident
+parseIndexedIdent x = case x of
   Ident string -> Ident string
 
-parseProgram :: Program -> Program
-parseProgram x = case x of
-  AProgram term -> AProgram (parseTerm term)
+parseIndexedProgram :: Program -> Program
+parseIndexedProgram x = case x of
+  AProgram term -> AProgram (parseIndexedTerm term)
 
-parseTerm :: Term -> TermResult
-parseTerm x = case x of
-  Var variable -> Var (parseTerm term)
-  IntConst integer -> IntConst integer 
-  DoubleConst double -> DoubleConst double
-  Binder variable term -> Binder (parseVariable variable) (parseTerm term)
-  Application term1 term2 -> Application (parseTerm term1) (parseTerm term2)
-    -- newTerm1 <- substTerm term1 substNumber newTerm
-    -- newTerm2 <- substTerm term2 substNumber newTerm
-    -- case newTerm1 of 
-    --   Binder v binderTerm -> do 
-    --     notUpdatedIdexs <- substTerm binderTerm 0 (Just newTerm2)
-    --     Right (shiftTerm notUpdatedIdexs (0) (\x -> x + (-1))) 
-    --   _ -> Right (Application newTerm1 newTerm2)
+parseIndexedTerm :: Term -> Term
+parseIndexedTerm x = case x of
+  Var variable -> Var (parseIndexedVariable variable)
+  IntConst integer -> x
+  DoubleConst double -> x
+  Binder variable term -> Binder (parseIndexedVariable variable) (parseIndexedTerm term)
+  Application term1 term2 -> do
+    let newTerm1 = (parseIndexedTerm term1)
+    let newTerm2 = (parseIndexedTerm term2)
+    case newTerm1 of 
+      Binder variable binderTerm -> do 
+        let beforeDownShift = substTerm binderTerm 0 newTerm2
+        shiftTerm beforeDownShift 1 (\x -> x + (-1))
+      _ -> Application newTerm1 newTerm2
     
-  Plus term1 term2 -> Plus (parseTerm term1) (parseTerm term2)
-  Minus term1 term2 -> Minus (parseTerm term1) (parseTerm term2)
+  Plus term1 term2 -> Plus (parseIndexedTerm term1) (parseIndexedTerm term2)
+  Minus term1 term2 -> Minus (parseIndexedTerm term1) (parseIndexedTerm term2)
 
-parseVariable :: Variable -> Variable
-parseVariable x = case x of
+parseIndexedVariable :: Variable -> Variable
+parseIndexedVariable x = case x of
   Identifier ident -> Identifier ident
   Bound integer -> Bound integer

@@ -6,7 +6,7 @@
 
 module LambdaCalc.ShiftFunction where
 
-import Prelude (($), String, (++), (>), Show, show, Integer, Maybe (..), fst, snd, otherwise, (==), (+))
+import Prelude (($), String, (++), (>), (>=), Show, show, Integer, Maybe (..), fst, snd, otherwise, (==), (+))
 import qualified LambdaCalc.LambdaCalculus.Abs
 import LambdaCalc.LambdaCalculus.Abs ( Program(..), Term(..), Ident(..), Variable(..) )
 
@@ -16,23 +16,23 @@ shiftIdent x = case x of
   Ident string -> Ident string
 
 shiftTerm :: Term -> Integer -> (Integer -> Integer) -> Term
-shiftTerm x maxScope func = case x of
-  Var variable -> Var (shiftVariable variable maxScope func) 
+shiftTerm x cutoff func = case x of
+  Var variable -> Var (shiftVariable variable cutoff func) 
   IntConst integer -> IntConst integer
   DoubleConst double -> DoubleConst double
   Binder variable term -> 
-    Binder (shiftVariable variable maxScope func) (shiftTerm term (maxScope+1) func)
+    Binder (shiftVariable variable cutoff func) (shiftTerm term (cutoff+1) func)
   Application term1 term2 ->
-    Application (shiftTerm term1 maxScope func) (shiftTerm term2 maxScope func)
+    Application (shiftTerm term1 cutoff func) (shiftTerm term2 cutoff func)
   Plus term1 term2 -> 
-    Plus (shiftTerm term1 maxScope func) (shiftTerm term2 maxScope func)
+    Plus (shiftTerm term1 cutoff func) (shiftTerm term2 cutoff func)
   Minus term1 term2 ->
-    Minus (shiftTerm term1 maxScope func) (shiftTerm term2 maxScope func)
+    Minus (shiftTerm term1 cutoff func) (shiftTerm term2 cutoff func)
     
 shiftVariable :: Variable -> Integer -> (Integer -> Integer) -> Variable
-shiftVariable x maxScope func = case x of
+shiftVariable x cutoff func = case x of
   Identifier ident -> Identifier (shiftIdent ident)
   Bound integer -> 
-    if (integer > maxScope)
+    if (integer >= cutoff)
       then Bound (func integer)
       else Bound integer

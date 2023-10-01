@@ -11,75 +11,43 @@ import qualified LambdaCalc.LambdaCalculus.Abs
 import LambdaCalc.LambdaCalculus.Abs ( Program(..), Term(..), Ident(..), Variable(..) )
 import LambdaCalc.ShiftFunction ( shiftTerm )
 
-type Result = Either String Program
-type SubstitutionTerm = Maybe Term
 
-failure :: Show a => a -> Either String String
-failure x = Left $ "Undefined case: " ++ show x
-
-
-substIdent :: Ident -> Either String Ident
+substIdent :: Ident -> Ident
 substIdent x = case x of
-  Ident string -> Right (Ident string)
+  Ident string -> Ident string
 
-substProgram :: Program -> Either String Program
-substProgram x = case x of
-    LambdaCalc.LambdaCalculus.Abs.AProgram term -> do 
-      case substTerm term 0 Nothing of 
-        Left err -> Left err
-        Right terms -> Right (AProgram terms)
-
-substTerm :: Term -> Integer -> SubstitutionTerm -> Either String Term
-substTerm x substNumber newTerm = case x of
+substTerm :: Term -> Integer -> Term -> Term
+substTerm x substIndex newTerm = case x of
   Var variable ->
     case substVariable variable of 
-      Left err -> Left err
-      Right (Left identifier) -> Right (Var identifier)
-      Right (Right index) -> 
-        case newTerm of 
-          Nothing -> Right (Var (Bound index))
-          Just nt -> 
-            if substNumber == index
-              then Right nt
-              else Right (Var (Bound index))
+      Left identifier -> Var identifier
+      Right index -> 
+        if substIndex == index 
+          then newTerm
+          else Var (Bound index)
 
-  IntConst integer -> Right (IntConst integer)
-  DoubleConst double -> Right (DoubleConst double)
-  Binder variable term -> 
-    case newTerm of 
-      Nothing -> 
-        case substTerm term substNumber newTerm of 
-          Left err -> Left err
-          Right t -> Right (Binder variable t)
-      Just nt -> do
-        updatedRightTerm <- Right (shiftTerm nt (-1) (\x -> x+1)) 
-        case (substTerm term (substNumber+1) (Just updatedRightTerm)) of 
-          Left a -> Left a
-          Right b -> Right (Binder variable b)
+  IntConst integer -> IntConst integer
+  DoubleConst double -> DoubleConst double
+  Binder variable term -> do
+    let upShiftedTerm = shiftTerm newTerm 0 (\x -> x + 1) -- lambda . (lambda (1 0)) <- 1 => lambda (1 0) <- 1 [=>] (1 0) <- 2 => lambda (2 0)
+    Binder variable (substTerm term (substIndex+1) upShiftedTerm) 
 
   Application term1 term2 -> do 
-    newTerm1 <- substTerm term1 substNumber newTerm
-    newTerm2 <- substTerm term2 substNumber newTerm
+    let newTerm1 = substTerm term1 substIndex newTerm
+    let newTerm2 = substTerm term2 substIndex newTerm
     case newTerm1 of 
       Binder v binderTerm -> do 
-        notUpdatedIdexs <- substTerm binderTerm 0 (Just newTerm2)
-        Right (shiftTerm notUpdatedIdexs (0) (\x -> x + (-1))) 
-      _ -> Right (Application newTerm1 newTerm2)
+        let beforeDownShift = substTerm binderTerm 0 newTerm2
+        shiftTerm beforeDownShift 1 (\x -> x + (-1))
+      _ -> Application newTerm1 newTerm2
 
-  Plus term1 term2 -> do 
-    newTerm1 <- substTerm term1 substNumber newTerm
-    newTerm2 <- substTerm term2 substNumber newTerm
-    Right (Plus newTerm1 newTerm2)
+  Plus term1 term2 -> 
+    Plus (substTerm term1 substIndex newTerm) (substTerm term2 substIndex newTerm)
 
-  Minus term1 term2 ->  do
-    newTerm1 <- substTerm term1 substNumber newTerm
-    newTerm2 <- substTerm term2 substNumber newTerm
-    Right (Minus newTerm1 newTerm2)
+  Minus term1 term2 -> 
+    Minus (substTerm term1 substIndex newTerm) (substTerm term2 substIndex newTerm)
 
-substVariable :: Variable -> Either String (Either Variable Integer)
+substVariable :: Variable -> Either Variable Integer
 substVariable x = case x of
-  Identifier ident -> case substIdent ident of
-    Right identifier -> Right $ Left $ (Identifier identifier)
-    _ -> Left $ "Unexpected case: " ++ show x
-  Bound integer -> Right $ Right $ integer
-  _ -> Left $ "Unexpected case: " ++ show x
+  Identifier ident -> Left (Identifier (substIdent ident))
+  Bound integer -> Right integer

@@ -1,20 +1,21 @@
-build: LambdaCalculus.cf
-	mkdir -p src/LambdaCalc/
-	cd src/LambdaCalc/ && (bnfc -m -d --haskell ../../LambdaCalculus.cf -p LambdaCalc;  cd ../../)
-	cd src/LambdaCalc/ && (make; cd ../../)
+build: ./Grammars/LambdaCalculus.cf ./Grammars/DeBruĳnGrammar.cf
+	mkdir -p src/Calculator/
+	cd src/Calculator/ && (bnfc -m -d --haskell ../../Grammars/DeBruĳnGrammar.cf -p DBruinCalc ; make; cd ../../)
+	cd src/Calculator/ && (bnfc -m -d --haskell ../../Grammars/LambdaCalculus.cf -p LCalc ; make; cd ../../)
 
-test: ./src/LambdaCalc/LambdaCalc/LambdaCalculus/Test
-	./src/LambdaCalc/LambdaCalc/LambdaCalculus/Test
-
-./src/LambdaCalc/LambdaCalc/main : build
-	ghc ./src/LambdaCalc/LambdaCalc/LambdaCalculus/Abs.hs ./src/LambdaCalc/LambdaCalc/LambdaCalculus/Lex.hs ./src/LambdaCalc/LambdaCalc/LambdaCalculus/Par.hs ./src/LambdaCalc/LambdaCalc/LambdaCalculus/Print.hs ./src/LambdaCalc/LambdaCalc/ShiftFunction.hs ./src/LambdaCalc/LambdaCalc/Analyser.hs ./src/LambdaCalc/LambdaCalc/Substitute.hs ./src/LambdaCalc/LambdaCalc/IndexedTreeParser.hs ./src/LambdaCalc/LambdaCalc/main.hs
+test: ./src/Calculator/LCalc/LambdaCalculus/Test
+	./src/Calculator/LCalc/LambdaCalculus/Test
 
 
-run: ./src/LambdaCalc/LambdaCalc/main
-	./src/LambdaCalc/LambdaCalc/main
+./src/Calculator/main : build 
+	ghc ./src/Calculator/LCalc/LambdaCalculus/Abs.hs ./src/Calculator/LCalc/LambdaCalculus/Lex.hs ./src/Calculator/LCalc/LambdaCalculus/Par.hs ./src/Calculator/LCalc/LambdaCalculus/Print.hs ./src/Calculator/DBruinCalc/DeBruĳnGrammar/Abs.hs ./src/Calculator/DBruinCalc/DeBruĳnGrammar/Lex.hs ./src/Calculator/DBruinCalc/DeBruĳnGrammar/Par.hs ./src/Calculator/DBruinCalc/DeBruĳnGrammar/Print.hs ./src/Calculator/*.hs
+
+run: ./src/Calculator/main
+	./src/Calculator/main
 
 clean:
-	cd src/LambdaCalc/ && (make clean; cd ../../)
+	cd src/Calculator/LCalc/ && (make clean; cd ../../)
+	-rm -f src/Calculator/*.hi src/Calculator/*.o src/Calculator/*.bak
 
 clean-bak:
-	cd src/LambdaCalc/ && (rm -f *.bak; cd ../../)
+	cd src/Calculator/LCalc/ && (rm -f *.bak; cd ../../../)

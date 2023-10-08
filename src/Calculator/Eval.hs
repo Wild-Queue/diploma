@@ -7,8 +7,8 @@
 module Eval where
 
 import Prelude (($), Either(..), String, (++), Show, show, (+), map)
-import qualified DBruinCalc.DeBruĳnGrammar.Abs
-import DBruinCalc.DeBruĳnGrammar.Abs ( Program(..), Term(..), Ident(..), Variable(..) )
+import qualified DBruijnCalc.DeBruijnGrammar.Abs
+import DBruijnCalc.DeBruijnGrammar.Abs ( Program(..), Term(..), Ident(..), Variable(..) )
 import Substitute ( substTerm )
 import ShiftFunction ( shiftTerm )
 
@@ -26,12 +26,18 @@ evalTerm x = case x of
   Var variable -> Var (evalVariable variable)
   IntConst integer -> x
   DoubleConst double -> x
-  Binder variable term -> Binder (evalVariable variable) (evalTerm term)
+  Binder term -> Binder (evalTerm term)
+  LetBinder term1 term2 -> do 
+    let newTerm1 = evalTerm term1
+    let newTerm2 = evalTerm term2
+    let beforeDownShift = substTerm newTerm2 0 newTerm1
+    shiftTerm beforeDownShift 1 (-1)
+    
   Application term1 term2 -> do
     let newTerm1 = evalTerm term1
     let newTerm2 = evalTerm term2
     case newTerm1 of 
-      Binder variable binderTerm -> do 
+      Binder binderTerm -> do 
         let beforeDownShift = substTerm binderTerm 0 newTerm2
         shiftTerm beforeDownShift 1 (-1)
       _ -> Application newTerm1 newTerm2

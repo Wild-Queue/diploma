@@ -29,6 +29,7 @@ transTerm x = case x of
   LCalc.LambdaCalculus.Abs.IntConst integer -> failure x
   LCalc.LambdaCalculus.Abs.DoubleConst double -> failure x
   LCalc.LambdaCalculus.Abs.Binder variable term -> failure x
+  LCalc.LambdaCalculus.Abs.LetBinder variable term1 term2 -> failure x
   LCalc.LambdaCalculus.Abs.Application term1 term2 -> failure x
   LCalc.LambdaCalculus.Abs.Plus term1 term2 -> failure x
   LCalc.LambdaCalculus.Abs.Minus term1 term2 -> failure x

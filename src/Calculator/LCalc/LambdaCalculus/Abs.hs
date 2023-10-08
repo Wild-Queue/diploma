@@ -18,6 +18,7 @@ data Term
     | IntConst Integer
     | DoubleConst Double
     | Binder Variable Term
+    | LetBinder Variable Term Term
     | Application Term Term
     | Plus Term Term
     | Minus Term Term

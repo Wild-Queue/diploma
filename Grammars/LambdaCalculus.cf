@@ -5,6 +5,7 @@ IntConst.       Term ::= Integer ;
 DoubleConst.    Term ::= Double ;
 -- Binder.         Term ::= "λ" Variable "." Term ;
 Binder.         Term ::= "lambda" Variable "." Term ;
+LetBinder.      Term ::= "let" Variable "=" Term "in" Term;
 Application.    Term ::= "(" Term Term ")" ;
 Plus.           Term ::= Term "+" Term  ;
 Minus.          Term ::= Term "-" Term  ;

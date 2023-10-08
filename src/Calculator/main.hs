@@ -26,6 +26,9 @@ import ToDeBruĳn  ( toDeBruĳn )
 import Eval ( evalProgram )
 import FromDeBruĳn (fromDeBruĳn)
 
+import qualified LCalc.LambdaCalculus.Print as LCalculus
+import qualified DBruijnCalc.DeBruijnGrammar.Print as DBCalculus
+
 type Err        = Either String
 type ParseFun a = [Token] -> Err a
 type Verbosity  = Int
@@ -57,7 +60,7 @@ analyseTree v tree = do
   case tree of 
     AProgram programTree -> do
       showTree v programTree
-      let indexedTree = toDeBruĳn tree 
+      let indexedTree = toDeBruĳn tree
       let simplifiedDB = evalProgram indexedTree
       showTree v (fromDeBruĳn simplifiedDB)
 

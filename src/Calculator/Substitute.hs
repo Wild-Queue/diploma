@@ -7,8 +7,8 @@
 module Substitute where
 
 import Prelude (($), Either(..), String, (++), Show, show, Integer, Maybe (..), fst, snd, otherwise, (==), (+))
-import qualified DBruinCalc.DeBruĳnGrammar.Abs
-import DBruinCalc.DeBruĳnGrammar.Abs ( Program(..), Term(..), Ident(..), Variable(..) )
+import qualified DBruijnCalc.DeBruijnGrammar.Abs
+import DBruijnCalc.DeBruijnGrammar.Abs ( Program(..), Term(..), Ident(..), Variable(..) )
 import ShiftFunction ( shiftTerm )
 
 
@@ -28,13 +28,19 @@ substTerm x substIndex newTerm = case x of
 
   IntConst integer -> IntConst integer
   DoubleConst double -> DoubleConst double
-  Binder variable term -> Binder variable (substTerm term (substIndex+1) newTerm) 
+  Binder term -> Binder (substTerm term (substIndex+1) newTerm) 
+
+  LetBinder term1 term2 -> do 
+    let newTerm1 = substTerm term1 substIndex newTerm
+    let newTerm2 = substTerm term2 (substIndex+1) newTerm
+    let beforeDownShift = substTerm newTerm2 0 newTerm1
+    shiftTerm beforeDownShift 1 (-1)
 
   Application term1 term2 -> do 
     let newTerm1 = substTerm term1 substIndex newTerm
     let newTerm2 = substTerm term2 substIndex newTerm
     case newTerm1 of 
-      Binder v binderTerm -> do 
+      Binder binderTerm -> do 
         let beforeDownShift = substTerm binderTerm 0 newTerm2
         shiftTerm beforeDownShift 1 (-1)
       _ -> Application newTerm1 newTerm2

@@ -7,8 +7,8 @@
 module ShiftFunction where
 
 import Prelude (($), String, (++), (>), (>=), Show, show, Integer, Maybe (..), fst, snd, otherwise, (==), (+))
-import qualified DBruinCalc.DeBruĳnGrammar.Abs
-import DBruinCalc.DeBruĳnGrammar.Abs ( Program(..), Term(..), Ident(..), Variable(..) )
+import qualified DBruijnCalc.DeBruijnGrammar.Abs
+import DBruijnCalc.DeBruijnGrammar.Abs ( Program(..), Term(..), Ident(..), Variable(..) )
 
 
 shiftIdent :: Ident -> Ident
@@ -20,8 +20,10 @@ shiftTerm x cutoff d = case x of
   Var variable -> Var (shiftVariable variable cutoff d) 
   IntConst integer -> IntConst integer
   DoubleConst double -> DoubleConst double
-  Binder variable term -> 
-    Binder (shiftVariable variable cutoff d) (shiftTerm term (cutoff+1) d)
+  Binder term -> 
+    Binder (shiftTerm term (cutoff+1) d)
+  LetBinder term1 term2 -> 
+    LetBinder (shiftTerm term1 cutoff d) (shiftTerm term2 (cutoff+1) d)
   Application term1 term2 ->
     Application (shiftTerm term1 cutoff d) (shiftTerm term2 cutoff d)
   Plus term1 term2 -> 

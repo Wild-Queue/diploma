@@ -29,16 +29,19 @@ import LCalc.LambdaCalculus.Lex
 %monad { Err } { (>>=) } { return }
 %tokentype {Token}
 %token
-  '('      { PT _ (TS _ 1) }
-  ')'      { PT _ (TS _ 2) }
-  '+'      { PT _ (TS _ 3) }
-  '-'      { PT _ (TS _ 4) }
-  '.'      { PT _ (TS _ 5) }
-  ';'      { PT _ (TS _ 6) }
-  'lambda' { PT _ (TS _ 7) }
-  L_Ident  { PT _ (TV $$)  }
-  L_doubl  { PT _ (TD $$)  }
-  L_integ  { PT _ (TI $$)  }
+  '('      { PT _ (TS _ 1)  }
+  ')'      { PT _ (TS _ 2)  }
+  '+'      { PT _ (TS _ 3)  }
+  '-'      { PT _ (TS _ 4)  }
+  '.'      { PT _ (TS _ 5)  }
+  ';'      { PT _ (TS _ 6)  }
+  '='      { PT _ (TS _ 7)  }
+  'in'     { PT _ (TS _ 8)  }
+  'lambda' { PT _ (TS _ 9)  }
+  'let'    { PT _ (TS _ 10) }
+  L_Ident  { PT _ (TV $$)   }
+  L_doubl  { PT _ (TD $$)   }
+  L_integ  { PT _ (TI $$)   }
 
 %%
 
@@ -60,6 +63,7 @@ Term
   | Integer { LCalc.LambdaCalculus.Abs.IntConst $1 }
   | Double { LCalc.LambdaCalculus.Abs.DoubleConst $1 }
   | 'lambda' Variable '.' Term { LCalc.LambdaCalculus.Abs.Binder $2 $4 }
+  | 'let' Variable '=' Term 'in' Term { LCalc.LambdaCalculus.Abs.LetBinder $2 $4 $6 }
   | '(' Term Term ')' { LCalc.LambdaCalculus.Abs.Application $2 $3 }
   | Term '+' Term { LCalc.LambdaCalculus.Abs.Plus $1 $3 }
   | Term '-' Term { LCalc.LambdaCalculus.Abs.Minus $1 $3 }

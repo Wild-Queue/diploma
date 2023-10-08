@@ -1,6 +1,6 @@
-build: ./Grammars/LambdaCalculus.cf ./Grammars/DeBruĳnGrammar.cf
+build: ./Grammars/LambdaCalculus.cf ./Grammars/DeBruijnGrammar.cf
 	mkdir -p src/Calculator/
-	cd src/Calculator/ && (bnfc -m -d --haskell ../../Grammars/DeBruĳnGrammar.cf -p DBruinCalc ; make; cd ../../)
+	cd src/Calculator/ && (bnfc -m -d --haskell ../../Grammars/DeBruijnGrammar.cf -p DBruijnCalc ; make; cd ../../)
 	cd src/Calculator/ && (bnfc -m -d --haskell ../../Grammars/LambdaCalculus.cf -p LCalc ; make; cd ../../)
 
 test: ./src/Calculator/LCalc/LambdaCalculus/Test
@@ -8,7 +8,7 @@ test: ./src/Calculator/LCalc/LambdaCalculus/Test
 
 
 ./src/Calculator/main : build 
-	ghc ./src/Calculator/LCalc/LambdaCalculus/Abs.hs ./src/Calculator/LCalc/LambdaCalculus/Lex.hs ./src/Calculator/LCalc/LambdaCalculus/Par.hs ./src/Calculator/LCalc/LambdaCalculus/Print.hs ./src/Calculator/DBruinCalc/DeBruĳnGrammar/Abs.hs ./src/Calculator/DBruinCalc/DeBruĳnGrammar/Lex.hs ./src/Calculator/DBruinCalc/DeBruĳnGrammar/Par.hs ./src/Calculator/DBruinCalc/DeBruĳnGrammar/Print.hs ./src/Calculator/*.hs
+	ghc ./src/Calculator/LCalc/LambdaCalculus/Abs.hs ./src/Calculator/LCalc/LambdaCalculus/Lex.hs ./src/Calculator/LCalc/LambdaCalculus/Par.hs ./src/Calculator/LCalc/LambdaCalculus/Print.hs ./src/Calculator/DBruijnCalc/DeBruijnGrammar/Abs.hs ./src/Calculator/DBruijnCalc/DeBruijnGrammar/Lex.hs ./src/Calculator/DBruijnCalc/DeBruijnGrammar/Par.hs ./src/Calculator/DBruijnCalc/DeBruijnGrammar/Print.hs ./src/Calculator/*.hs
 
 run: ./src/Calculator/main
 	./src/Calculator/main

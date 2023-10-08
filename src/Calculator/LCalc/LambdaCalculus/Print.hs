@@ -150,6 +150,7 @@ instance Print LCalc.LambdaCalculus.Abs.Term where
     LCalc.LambdaCalculus.Abs.IntConst n -> prPrec i 0 (concatD [prt 0 n])
     LCalc.LambdaCalculus.Abs.DoubleConst d -> prPrec i 0 (concatD [prt 0 d])
     LCalc.LambdaCalculus.Abs.Binder variable term -> prPrec i 0 (concatD [doc (showString "lambda"), prt 0 variable, doc (showString "."), prt 0 term])
+    LCalc.LambdaCalculus.Abs.LetBinder variable term1 term2 -> prPrec i 0 (concatD [doc (showString "let"), prt 0 variable, doc (showString "="), prt 0 term1, doc (showString "in"), prt 0 term2])
     LCalc.LambdaCalculus.Abs.Application term1 term2 -> prPrec i 0 (concatD [doc (showString "("), prt 0 term1, prt 0 term2, doc (showString ")")])
     LCalc.LambdaCalculus.Abs.Plus term1 term2 -> prPrec i 0 (concatD [prt 0 term1, doc (showString "+"), prt 0 term2])
     LCalc.LambdaCalculus.Abs.Minus term1 term2 -> prPrec i 0 (concatD [prt 0 term1, doc (showString "-"), prt 0 term2])

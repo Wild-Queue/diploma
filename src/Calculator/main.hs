@@ -22,9 +22,9 @@ import LCalc.LambdaCalculus.Abs   ( Program(..) )
 import LCalc.LambdaCalculus.Lex   ( Token, mkPosToken )
 import LCalc.LambdaCalculus.Par   ( pProgram, myLexer )
 import LCalc.LambdaCalculus.Print ( Print, printTree )
-import ToDeBruĳn  ( toDeBruĳn )
+import ToDeBruijn  ( toDeBruijn )
 import Eval ( evalProgram )
-import FromDeBruĳn (fromDeBruĳn)
+import FromDeBruijn (fromDeBruijn)
 
 import qualified LCalc.LambdaCalculus.Print as LCalculus
 import qualified DBruijnCalc.DeBruijnGrammar.Print as DBCalculus
@@ -60,9 +60,9 @@ analyseTree v tree = do
   case tree of 
     AProgram programTree -> do
       showTree v programTree
-      let indexedTree = toDeBruĳn tree
+      let indexedTree = toDeBruijn tree
       let simplifiedDB = evalProgram indexedTree
-      showTree v (fromDeBruĳn simplifiedDB)
+      showTree v (fromDeBruijn simplifiedDB)
 
 showTree :: (Show a, Print a) => Int -> a -> IO ()
 showTree v tree = do

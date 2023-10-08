@@ -4,7 +4,7 @@
 
 {-# OPTIONS_GHC -fno-warn-unused-matches #-}
 
-module FromDeBruĳn where
+module FromDeBruijn where
 
 import Prelude (($), Either(..), String, (++), Show, fromIntegral, show, Integer, Maybe (..), fst, snd, mod, otherwise, (==), (<), (+), map, foldr, Num (fromInteger), Integral (toInteger), Foldable (foldl), const, length)
 import Data.Char (chr)
@@ -31,54 +31,54 @@ addIdentifier :: [(Integer, String)] -> Integer -> [(Integer, String)]
 addIdentifier xs length = foldr (:) [(0, intToString length)] xs
 
 
-fromDeBruĳnIdent :: DBCalculus.Ident -> LCalculus.Ident
-fromDeBruĳnIdent x = case x of
+fromDeBruijnIdent :: DBCalculus.Ident -> LCalculus.Ident
+fromDeBruijnIdent x = case x of
   DBCalculus.Ident string -> LCalculus.Ident string
 
-fromDeBruĳn :: DBCalculus.Program -> LCalculus.Program
-fromDeBruĳn prog = case prog of
-    DBCalculus.AProgram terms -> LCalculus.AProgram (map (\ x -> fromDeBruĳnTerm x []) terms)
+fromDeBruijn :: DBCalculus.Program -> LCalculus.Program
+fromDeBruijn prog = case prog of
+    DBCalculus.AProgram terms -> LCalculus.AProgram (map (\ x -> fromDeBruijnTerm x []) terms)
 
-fromDeBruĳnTerm :: DBCalculus.Term -> [(Integer, String)] -> LCalculus.Term
-fromDeBruĳnTerm x nameDict = case x of
-  DBCalculus.Var variable -> LCalculus.Var (fromDeBruĳnVariable variable nameDict) 
+fromDeBruijnTerm :: DBCalculus.Term -> [(Integer, String)] -> LCalculus.Term
+fromDeBruijnTerm x nameDict = case x of
+  DBCalculus.Var variable -> LCalculus.Var (fromDeBruijnVariable variable nameDict) 
   DBCalculus.IntConst integer -> LCalculus.IntConst integer
   DBCalculus.DoubleConst double -> LCalculus.DoubleConst double
   DBCalculus.Binder term -> do 
     let dictTermScope = upShiftDict nameDict
     let dictLength = toInteger (Prelude.length dictTermScope)
     let dictWithVar = addIdentifier dictTermScope dictLength
-    let updatedTerm = fromDeBruĳnTerm term dictWithVar 
+    let updatedTerm = fromDeBruijnTerm term dictWithVar 
     LCalculus.Binder (LCalculus.Identifier (LCalculus.Ident (intToString dictLength))) updatedTerm
       
   DBCalculus.LetBinder term1 term2 -> do
-    let updatedTerm1 = fromDeBruĳnTerm term1 nameDict 
+    let updatedTerm1 = fromDeBruijnTerm term1 nameDict 
 
     let dictTermScope = upShiftDict nameDict
     let dictLength = toInteger (Prelude.length dictTermScope)
     let dictWithVar = addIdentifier dictTermScope dictLength
-    let updatedTerm2 = fromDeBruĳnTerm term2 dictWithVar 
+    let updatedTerm2 = fromDeBruijnTerm term2 dictWithVar 
     
     LCalculus.LetBinder (LCalculus.Identifier (LCalculus.Ident (intToString dictLength))) updatedTerm1 updatedTerm2
 
   DBCalculus.Application term1 term2 -> do 
-    let updatedTerm1 = fromDeBruĳnTerm term1 nameDict 
-    let updatedTerm2 = fromDeBruĳnTerm term2 nameDict 
+    let updatedTerm1 = fromDeBruijnTerm term1 nameDict 
+    let updatedTerm2 = fromDeBruijnTerm term2 nameDict 
     LCalculus.Application updatedTerm1 updatedTerm2
 
   DBCalculus.Plus term1 term2 -> do 
-    let updatedTerm1 = fromDeBruĳnTerm term1 nameDict 
-    let updatedTerm2 = fromDeBruĳnTerm term2 nameDict
+    let updatedTerm1 = fromDeBruijnTerm term1 nameDict 
+    let updatedTerm2 = fromDeBruijnTerm term2 nameDict
     LCalculus.Plus updatedTerm1 updatedTerm2
 
   DBCalculus.Minus term1 term2 ->  do 
-    let updatedTerm1 = fromDeBruĳnTerm term1 nameDict
-    let updatedTerm2 = fromDeBruĳnTerm term2 nameDict
+    let updatedTerm1 = fromDeBruijnTerm term1 nameDict
+    let updatedTerm2 = fromDeBruijnTerm term2 nameDict
     LCalculus.Minus updatedTerm1 updatedTerm2
 
-fromDeBruĳnVariable :: DBCalculus.Variable -> [(Integer, String)] -> LCalculus.Variable
-fromDeBruĳnVariable x nameDict = case x of
-  DBCalculus.Identifier ident -> LCalculus.Identifier (fromDeBruĳnIdent ident)
+fromDeBruijnVariable :: DBCalculus.Variable -> [(Integer, String)] -> LCalculus.Variable
+fromDeBruijnVariable x nameDict = case x of
+  DBCalculus.Identifier ident -> LCalculus.Identifier (fromDeBruijnIdent ident)
   DBCalculus.Bound indx -> 
     case returnIdentifier nameDict indx  of 
         Just ident -> LCalculus.Identifier (LCalculus.Ident ident)

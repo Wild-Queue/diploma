@@ -4,7 +4,7 @@
 
 {-# OPTIONS_GHC -fno-warn-unused-matches #-}
 
-module ToDeBruĳn where
+module ToDeBruijn where
 
 import Prelude (($), Either(..), String, (++), Show, show, Integer, Maybe (..), fst, snd, otherwise, (==), (+), map)
 import qualified LCalc.LambdaCalculus.Abs as LCalculus
@@ -27,17 +27,17 @@ addIndx (x:xs) value
   | otherwise = x : addIndx xs value
 
 
-toDeBruĳnIdent :: LCalculus.Ident -> DBCalculus.Ident
-toDeBruĳnIdent x = case x of
+toDeBruijnIdent :: LCalculus.Ident -> DBCalculus.Ident
+toDeBruijnIdent x = case x of
   LCalculus.Ident string -> DBCalculus.Ident string
 
-toDeBruĳn :: LCalculus.Program -> DBCalculus.Program
-toDeBruĳn prog = case prog of
-    LCalculus.AProgram terms -> DBCalculus.AProgram (map (\ x -> toDeBruĳnTerm x []) terms)
+toDeBruijn :: LCalculus.Program -> DBCalculus.Program
+toDeBruijn prog = case prog of
+    LCalculus.AProgram terms -> DBCalculus.AProgram (map (\ x -> toDeBruijnTerm x []) terms)
 
-toDeBruĳnTerm :: LCalculus.Term -> [(String, Integer)] -> DBCalculus.Term
-toDeBruĳnTerm x nameDict = case x of
-  LCalculus.Var variable -> DBCalculus.Var (toDeBruĳnVariable variable nameDict) 
+toDeBruijnTerm :: LCalculus.Term -> [(String, Integer)] -> DBCalculus.Term
+toDeBruijnTerm x nameDict = case x of
+  LCalculus.Var variable -> DBCalculus.Var (toDeBruijnVariable variable nameDict) 
   LCalculus.IntConst integer -> DBCalculus.IntConst integer
   LCalculus.DoubleConst double -> DBCalculus.DoubleConst double
   LCalculus.Binder variable term -> do 
@@ -45,7 +45,7 @@ toDeBruĳnTerm x nameDict = case x of
       LCalculus.Identifier (LCalculus.Ident varName) -> do
         let dictTermScope = upShiftDict nameDict
         let dictWithVar = addIndx dictTermScope varName
-        let indexedTerm = toDeBruĳnTerm term dictWithVar 
+        let indexedTerm = toDeBruijnTerm term dictWithVar 
         DBCalculus.Binder indexedTerm
   
   LCalculus.LetBinder variable term1 term2 -> do 
@@ -54,31 +54,31 @@ toDeBruĳnTerm x nameDict = case x of
         let dictTermScope = upShiftDict nameDict
         let dictWithVar = addIndx dictTermScope varName
 
-        let dbTerm1 = toDeBruĳnTerm term1 nameDict -- Для первого терма не создается новый scope так как variable там не применяется
-        let dbTerm2 = toDeBruĳnTerm term2 dictWithVar
+        let dbTerm1 = toDeBruijnTerm term1 nameDict -- Для первого терма не создается новый scope так как variable там не применяется
+        let dbTerm2 = toDeBruijnTerm term2 dictWithVar
         
         DBCalculus.LetBinder dbTerm1 dbTerm2 
     
   LCalculus.Application term1 term2 -> do 
-    let updatedTerm1 = toDeBruĳnTerm term1 nameDict 
-    let updatedTerm2 = toDeBruĳnTerm term2 nameDict 
+    let updatedTerm1 = toDeBruijnTerm term1 nameDict 
+    let updatedTerm2 = toDeBruijnTerm term2 nameDict 
     DBCalculus.Application updatedTerm1 updatedTerm2
 
   LCalculus.Plus term1 term2 -> do 
-    let updatedTerm1 = toDeBruĳnTerm term1 nameDict 
-    let updatedTerm2 = toDeBruĳnTerm term2 nameDict
+    let updatedTerm1 = toDeBruijnTerm term1 nameDict 
+    let updatedTerm2 = toDeBruijnTerm term2 nameDict
     DBCalculus.Plus updatedTerm1 updatedTerm2
 
   LCalculus.Minus term1 term2 ->  do 
-    let updatedTerm1 = toDeBruĳnTerm term1 nameDict
-    let updatedTerm2 = toDeBruĳnTerm term2 nameDict
+    let updatedTerm1 = toDeBruijnTerm term1 nameDict
+    let updatedTerm2 = toDeBruijnTerm term2 nameDict
     DBCalculus.Minus updatedTerm1 updatedTerm2
 
-toDeBruĳnVariable :: LCalculus.Variable -> [(String, Integer)] -> DBCalculus.Variable
-toDeBruĳnVariable x nameDict = case x of
+toDeBruijnVariable :: LCalculus.Variable -> [(String, Integer)] -> DBCalculus.Variable
+toDeBruijnVariable x nameDict = case x of
   LCalculus.Identifier ident -> 
-    case toDeBruĳnIdent ident of
+    case toDeBruijnIdent ident of
       DBCalculus.Ident string -> 
         case returnIndex nameDict string of 
-          Nothing -> DBCalculus.Identifier (toDeBruĳnIdent ident)
+          Nothing -> DBCalculus.Identifier (toDeBruijnIdent ident)
           Just index -> DBCalculus.Bound index

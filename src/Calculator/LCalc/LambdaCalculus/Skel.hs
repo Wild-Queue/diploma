@@ -25,15 +25,19 @@ transProgram x = case x of
 
 transTerm :: LCalc.LambdaCalculus.Abs.Term -> Result
 transTerm x = case x of
-  LCalc.LambdaCalculus.Abs.Var variable -> failure x
-  LCalc.LambdaCalculus.Abs.IntConst integer -> failure x
-  LCalc.LambdaCalculus.Abs.DoubleConst double -> failure x
-  LCalc.LambdaCalculus.Abs.Binder variable term -> failure x
-  LCalc.LambdaCalculus.Abs.LetBinder variable term1 term2 -> failure x
+  LCalc.LambdaCalculus.Abs.Var varident -> failure x
   LCalc.LambdaCalculus.Abs.Application term1 term2 -> failure x
-  LCalc.LambdaCalculus.Abs.Plus term1 term2 -> failure x
-  LCalc.LambdaCalculus.Abs.Minus term1 term2 -> failure x
+  LCalc.LambdaCalculus.Abs.Lam pattern_ scopedterm -> failure x
+  LCalc.LambdaCalculus.Abs.Let pattern_ term scopedterm -> failure x
 
-transVariable :: LCalc.LambdaCalculus.Abs.Variable -> Result
-transVariable x = case x of
-  LCalc.LambdaCalculus.Abs.Identifier ident -> failure x
+transPattern :: LCalc.LambdaCalculus.Abs.Pattern -> Result
+transPattern x = case x of
+  LCalc.LambdaCalculus.Abs.PatternVar varident -> failure x
+
+transScopedTerm :: LCalc.LambdaCalculus.Abs.ScopedTerm -> Result
+transScopedTerm x = case x of
+  LCalc.LambdaCalculus.Abs.ScopedTerm term -> failure x
+
+transVarIdent :: LCalc.LambdaCalculus.Abs.VarIdent -> Result
+transVarIdent x = case x of
+  LCalc.LambdaCalculus.Abs.VarIdent ident -> failure x

@@ -1,0 +1,10 @@
+AProgram . Program ::= [Term];
+Var . Term ::= VarIdent;
+Application . Term ::= "(" Term Term ")";
+Lam . Term ::= "fn" "=>" ScopedTerm;
+Let . Term ::= "let" "=" Term "in" ScopedTerm;
+_ . Term ::= "(" Term ")";
+separator Term ";";
+ScopedTerm . ScopedTerm ::= Term;
+VarIdent . VarIdent ::= Ident;
+DBBound . VarIdent ::= "Bound" "(" Integer ")";

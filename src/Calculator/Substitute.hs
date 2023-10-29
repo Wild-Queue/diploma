@@ -8,7 +8,7 @@ module Substitute where
 
 import Prelude (($), Either(..), String, (++), Show, show, Integer, Maybe (..), fst, snd, otherwise, (==), (+))
 import qualified DBruijnCalc.DeBruijnGrammar.Abs
-import DBruijnCalc.DeBruijnGrammar.Abs ( Program(..), Term(..), Ident(..), Variable(..) )
+import DBruijnCalc.DeBruijnGrammar.Abs ( Program(..), Term(..), Ident(..), VarIdent(..), ScopedTerm(..))
 import ShiftFunction ( shiftTerm )
 
 
@@ -24,33 +24,30 @@ substTerm x substIndex newTerm = case x of
       Right index -> 
         if substIndex == index 
           then shiftTerm newTerm 0 substIndex
-          else Var (Bound index)
+          else Var (DBBound index)
 
-  IntConst integer -> IntConst integer
-  DoubleConst double -> DoubleConst double
-  Binder term -> Binder (substTerm term (substIndex+1) newTerm) 
+  Lam term ->
+    case term of 
+      ScopedTerm term -> Lam (ScopedTerm (substTerm term (substIndex+1) newTerm))
 
-  LetBinder term1 term2 -> do 
-    let newTerm1 = substTerm term1 substIndex newTerm
-    let newTerm2 = substTerm term2 (substIndex+1) newTerm
-    let beforeDownShift = substTerm newTerm2 0 newTerm1
-    shiftTerm beforeDownShift 1 (-1)
+  Let term1 term2 -> 
+    case term2 of 
+      ScopedTerm term2 -> do
+        let newTerm1 = substTerm term1 substIndex newTerm
+        let newTerm2 = substTerm term2 (substIndex+1) newTerm
+        let beforeDownShift = substTerm newTerm2 0 newTerm1
+        shiftTerm beforeDownShift 1 (-1)
 
   Application term1 term2 -> do 
     let newTerm1 = substTerm term1 substIndex newTerm
     let newTerm2 = substTerm term2 substIndex newTerm
     case newTerm1 of 
-      Binder binderTerm -> do 
+      Lam (ScopedTerm binderTerm) -> do 
         let beforeDownShift = substTerm binderTerm 0 newTerm2
         shiftTerm beforeDownShift 1 (-1)
       _ -> Application newTerm1 newTerm2
 
-  Plus term1 term2 -> 
-    Plus (substTerm term1 substIndex newTerm) (substTerm term2 substIndex newTerm)
-  Minus term1 term2 -> 
-    Minus (substTerm term1 substIndex newTerm) (substTerm term2 substIndex newTerm)
-
-substVariable :: Variable -> Either Variable Integer
+substVariable :: VarIdent -> Either VarIdent Integer
 substVariable x = case x of
-  Identifier ident -> Left (Identifier (substIdent ident))
-  Bound integer -> Right integer
+  VarIdent ident -> Left (VarIdent (substIdent ident))
+  DBBound integer -> Right integer

@@ -6,7 +6,7 @@
 
 module LCalc.LambdaCalculus.Abs where
 
-import Prelude (Double, Integer, String)
+import Prelude (String)
 import qualified Prelude as C (Eq, Ord, Show, Read)
 import qualified Data.String
 
@@ -14,17 +14,19 @@ data Program = AProgram [Term]
   deriving (C.Eq, C.Ord, C.Show, C.Read)
 
 data Term
-    = Var Variable
-    | IntConst Integer
-    | DoubleConst Double
-    | Binder Variable Term
-    | LetBinder Variable Term Term
+    = Var VarIdent
     | Application Term Term
-    | Plus Term Term
-    | Minus Term Term
+    | Lam Pattern ScopedTerm
+    | Let Pattern Term ScopedTerm
   deriving (C.Eq, C.Ord, C.Show, C.Read)
 
-data Variable = Identifier Ident
+data Pattern = PatternVar VarIdent
+  deriving (C.Eq, C.Ord, C.Show, C.Read)
+
+data ScopedTerm = ScopedTerm Term
+  deriving (C.Eq, C.Ord, C.Show, C.Read)
+
+data VarIdent = VarIdent Ident
   deriving (C.Eq, C.Ord, C.Show, C.Read)
 
 newtype Ident = Ident String

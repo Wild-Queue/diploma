@@ -42,44 +42,39 @@ fromDeBruijn prog = case prog of
 fromDeBruijnTerm :: DBCalculus.Term -> [(Integer, String)] -> LCalculus.Term
 fromDeBruijnTerm x nameDict = case x of
   DBCalculus.Var variable -> LCalculus.Var (fromDeBruijnVariable variable nameDict) 
-  DBCalculus.IntConst integer -> LCalculus.IntConst integer
-  DBCalculus.DoubleConst double -> LCalculus.DoubleConst double
-  DBCalculus.Binder term -> do 
+  DBCalculus.Lam term -> do 
     let dictTermScope = upShiftDict nameDict
     let dictLength = toInteger (Prelude.length dictTermScope)
     let dictWithVar = addIdentifier dictTermScope dictLength
-    let updatedTerm = fromDeBruijnTerm term dictWithVar 
-    LCalculus.Binder (LCalculus.Identifier (LCalculus.Ident (intToString dictLength))) updatedTerm
+    case term of 
+      DBCalculus.ScopedTerm term -> do
+        let updatedTerm = fromDeBruijnTerm term dictWithVar 
+        LCalculus.Lam (LCalculus.PatternVar (LCalculus.VarIdent (LCalculus.Ident (intToString dictLength)))) (LCalculus.ScopedTerm updatedTerm)
       
-  DBCalculus.LetBinder term1 term2 -> do
+  DBCalculus.Let term1 term2 -> do
     let updatedTerm1 = fromDeBruijnTerm term1 nameDict 
 
     let dictTermScope = upShiftDict nameDict
     let dictLength = toInteger (Prelude.length dictTermScope)
     let dictWithVar = addIdentifier dictTermScope dictLength
-    let updatedTerm2 = fromDeBruijnTerm term2 dictWithVar 
-    
-    LCalculus.LetBinder (LCalculus.Identifier (LCalculus.Ident (intToString dictLength))) updatedTerm1 updatedTerm2
+    case term2 of 
+      DBCalculus.ScopedTerm term2 -> do
+        let updatedTerm2 = fromDeBruijnTerm term2 dictWithVar 
+        LCalculus.Let (LCalculus.PatternVar (LCalculus.VarIdent (LCalculus.Ident (intToString dictLength)))) updatedTerm1 (LCalculus.ScopedTerm updatedTerm2)
 
   DBCalculus.Application term1 term2 -> do 
     let updatedTerm1 = fromDeBruijnTerm term1 nameDict 
     let updatedTerm2 = fromDeBruijnTerm term2 nameDict 
     LCalculus.Application updatedTerm1 updatedTerm2
 
-  DBCalculus.Plus term1 term2 -> do 
-    let updatedTerm1 = fromDeBruijnTerm term1 nameDict 
-    let updatedTerm2 = fromDeBruijnTerm term2 nameDict
-    LCalculus.Plus updatedTerm1 updatedTerm2
+fromDeBruijnScopedTerm :: DBCalculus.ScopedTerm -> [(Integer, String)] -> LCalculus.ScopedTerm
+fromDeBruijnScopedTerm x nameDict = case x of
+  DBCalculus.ScopedTerm term -> LCalculus.ScopedTerm (fromDeBruijnTerm term nameDict)
 
-  DBCalculus.Minus term1 term2 ->  do 
-    let updatedTerm1 = fromDeBruijnTerm term1 nameDict
-    let updatedTerm2 = fromDeBruijnTerm term2 nameDict
-    LCalculus.Minus updatedTerm1 updatedTerm2
-
-fromDeBruijnVariable :: DBCalculus.Variable -> [(Integer, String)] -> LCalculus.Variable
+fromDeBruijnVariable :: DBCalculus.VarIdent -> [(Integer, String)] -> LCalculus.VarIdent
 fromDeBruijnVariable x nameDict = case x of
-  DBCalculus.Identifier ident -> LCalculus.Identifier (fromDeBruijnIdent ident)
-  DBCalculus.Bound indx -> 
+  DBCalculus.VarIdent ident -> LCalculus.VarIdent (fromDeBruijnIdent ident)
+  DBCalculus.DBBound indx -> 
     case returnIdentifier nameDict indx  of 
-        Just ident -> LCalculus.Identifier (LCalculus.Ident ident)
+        Just ident -> LCalculus.VarIdent (LCalculus.Ident ident)
         -- Слабое место в Nothing

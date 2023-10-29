@@ -146,21 +146,21 @@ instance Print DBruijnCalc.DeBruijnGrammar.Abs.Program where
 
 instance Print DBruijnCalc.DeBruijnGrammar.Abs.Term where
   prt i = \case
-    DBruijnCalc.DeBruijnGrammar.Abs.Var variable -> prPrec i 0 (concatD [prt 0 variable])
-    DBruijnCalc.DeBruijnGrammar.Abs.IntConst n -> prPrec i 0 (concatD [prt 0 n])
-    DBruijnCalc.DeBruijnGrammar.Abs.DoubleConst d -> prPrec i 0 (concatD [prt 0 d])
-    DBruijnCalc.DeBruijnGrammar.Abs.Binder term -> prPrec i 0 (concatD [doc (showString "lambda"), doc (showString "."), prt 0 term])
-    DBruijnCalc.DeBruijnGrammar.Abs.LetBinder term1 term2 -> prPrec i 0 (concatD [doc (showString "let"), prt 0 term1, doc (showString "in"), prt 0 term2])
+    DBruijnCalc.DeBruijnGrammar.Abs.Var varident -> prPrec i 0 (concatD [prt 0 varident])
     DBruijnCalc.DeBruijnGrammar.Abs.Application term1 term2 -> prPrec i 0 (concatD [doc (showString "("), prt 0 term1, prt 0 term2, doc (showString ")")])
-    DBruijnCalc.DeBruijnGrammar.Abs.Plus term1 term2 -> prPrec i 0 (concatD [prt 0 term1, doc (showString "+"), prt 0 term2])
-    DBruijnCalc.DeBruijnGrammar.Abs.Minus term1 term2 -> prPrec i 0 (concatD [prt 0 term1, doc (showString "-"), prt 0 term2])
+    DBruijnCalc.DeBruijnGrammar.Abs.Lam scopedterm -> prPrec i 0 (concatD [doc (showString "fn"), doc (showString "=>"), prt 0 scopedterm])
+    DBruijnCalc.DeBruijnGrammar.Abs.Let term scopedterm -> prPrec i 0 (concatD [doc (showString "let"), doc (showString "="), prt 0 term, doc (showString "in"), prt 0 scopedterm])
 
 instance Print [DBruijnCalc.DeBruijnGrammar.Abs.Term] where
   prt _ [] = concatD []
   prt _ [x] = concatD [prt 0 x]
   prt _ (x:xs) = concatD [prt 0 x, doc (showString ";"), prt 0 xs]
 
-instance Print DBruijnCalc.DeBruijnGrammar.Abs.Variable where
+instance Print DBruijnCalc.DeBruijnGrammar.Abs.ScopedTerm where
   prt i = \case
-    DBruijnCalc.DeBruijnGrammar.Abs.Identifier id_ -> prPrec i 0 (concatD [prt 0 id_])
-    DBruijnCalc.DeBruijnGrammar.Abs.Bound n -> prPrec i 0 (concatD [doc (showString "BOUND"), doc (showString "("), prt 0 n, doc (showString ")")])
+    DBruijnCalc.DeBruijnGrammar.Abs.ScopedTerm term -> prPrec i 0 (concatD [prt 0 term])
+
+instance Print DBruijnCalc.DeBruijnGrammar.Abs.VarIdent where
+  prt i = \case
+    DBruijnCalc.DeBruijnGrammar.Abs.VarIdent id_ -> prPrec i 0 (concatD [prt 0 id_])
+    DBruijnCalc.DeBruijnGrammar.Abs.DBBound n -> prPrec i 0 (concatD [doc (showString "Bound"), doc (showString "("), prt 0 n, doc (showString ")")])

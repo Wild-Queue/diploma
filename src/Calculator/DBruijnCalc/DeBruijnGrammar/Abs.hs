@@ -6,7 +6,7 @@
 
 module DBruijnCalc.DeBruijnGrammar.Abs where
 
-import Prelude (Double, Integer, String)
+import Prelude (Integer, String)
 import qualified Prelude as C (Eq, Ord, Show, Read)
 import qualified Data.String
 
@@ -14,17 +14,16 @@ data Program = AProgram [Term]
   deriving (C.Eq, C.Ord, C.Show, C.Read)
 
 data Term
-    = Var Variable
-    | IntConst Integer
-    | DoubleConst Double
-    | Binder Term
-    | LetBinder Term Term
+    = Var VarIdent
     | Application Term Term
-    | Plus Term Term
-    | Minus Term Term
+    | Lam ScopedTerm
+    | Let Term ScopedTerm
   deriving (C.Eq, C.Ord, C.Show, C.Read)
 
-data Variable = Identifier Ident | Bound Integer
+data ScopedTerm = ScopedTerm Term
+  deriving (C.Eq, C.Ord, C.Show, C.Read)
+
+data VarIdent = VarIdent Ident | DBBound Integer
   deriving (C.Eq, C.Ord, C.Show, C.Read)
 
 newtype Ident = Ident String

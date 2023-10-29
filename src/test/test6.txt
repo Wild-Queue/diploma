@@ -1,5 +1,8 @@
 ((lambda x . lambda y . ((x y) z)) y)
+((fn x => fn y => ((x y) z)) y)
 
 lambda y . ((lambda x . lambda y . ((x y) z)) y)
+fn y => ((fn x => fn y => ((x y) z)) p)
 
 lambda y . (((lambda x . lambda y . ((x y) z)) y) p )
+fn y => (((fn x => fn y => ((x y) z)) y) p)

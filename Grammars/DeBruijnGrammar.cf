@@ -1,16 +1,27 @@
-AProgram.       Program ::= [Term] ;
+-- AProgram.       Program ::= [Term] ;
+-- 
+-- Var.            Term ::= Variable ;
+-- IntConst.       Term ::= Integer ;
+-- DoubleConst.    Term ::= Double ;
+-- -- Binder.         Term ::= "λ" Variable "." Term ;
+-- Binder.         Term ::= "lambda" "." Term ;
+-- LetBinder.      Term ::= "let" Term "in" Term;
+-- Application.    Term ::= "(" Term Term ")" ;
+-- Plus.           Term ::= Term "+" Term  ;
+-- Minus.          Term ::= Term "-" Term  ;
+-- _.              Term ::= "(" Term ")";
+-- separator Term ";";
+-- 
+-- Identifier.     Variable ::= Ident;
+-- Bound.          Variable ::= "BOUND" "(" Integer ")";
 
-Var.            Term ::= Variable ;
-IntConst.       Term ::= Integer ;
-DoubleConst.    Term ::= Double ;
--- Binder.         Term ::= "λ" Variable "." Term ;
-Binder.         Term ::= "lambda" "." Term ;
-LetBinder.      Term ::= "let" Term "in" Term;
-Application.    Term ::= "(" Term Term ")" ;
-Plus.           Term ::= Term "+" Term  ;
-Minus.          Term ::= Term "-" Term  ;
-_.              Term ::= "(" Term ")";
+AProgram . Program ::= [Term];
+Var . Term ::= VarIdent;
+Application . Term ::= "(" Term Term ")";
+Lam . Term ::= "fn" "=>" ScopedTerm;
+Let . Term ::= "let" "=" Term "in" ScopedTerm;
+_ . Term ::= "(" Term ")";
 separator Term ";";
-
-Identifier.     Variable ::= Ident;
-Bound.          Variable ::= "BOUND" "(" Integer ")";
+ScopedTerm . ScopedTerm ::= Term;
+VarIdent . VarIdent ::= Ident;
+DBBound . VarIdent ::= "Bound" "(" Integer ")";

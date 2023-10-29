@@ -12,7 +12,7 @@ import Prelude
   , Show, show
   , IO, (>>), (>>=), mapM_, putStrLn
   , FilePath
-  , getContents, readFile
+  , getContents, readFile, Monad (return)
   )
 import System.Environment ( getArgs )
 import System.Exit        ( exitFailure )
@@ -21,8 +21,7 @@ import Control.Monad      ( when )
 import LCalc.LambdaCalculus.Abs   ( Program(..) )
 import LCalc.LambdaCalculus.Lex   ( Token, mkPosToken )
 import LCalc.LambdaCalculus.Par   ( pProgram, myLexer )
-import LCalc.LambdaCalculus.Print ( Print, printTree )
-import ToDeBruijn  ( toDeBruijn )
+import ToDeBruijn  ( toDeBruijn)
 import Eval ( evalProgram )
 import FromDeBruijn (fromDeBruijn)
 
@@ -37,10 +36,10 @@ putStrV :: Verbosity -> String -> IO ()
 putStrV v s = when (v > 1) $ putStrLn s
 
 runFile :: Verbosity -> ParseFun Program -> FilePath -> IO ()
-runFile v p f = putStrLn f >> readFile f >>= run v p
+runFile v p f = putStrLn f >> readFile f >>= run "final" v p 
 
-run :: Verbosity -> ParseFun Program -> String -> IO ()
-run v p s =
+run :: String -> Verbosity -> ParseFun Program -> String -> IO ()
+run flag v p s =
   case p ts of
     Left err -> do
       putStrLn "\nParse              Failed...\n"
@@ -49,25 +48,46 @@ run v p s =
       putStrLn err
       exitFailure
     Right tree -> do
-      putStrLn "\nParse Successful!"
-      analyseTree v tree
+      putStrLn "\nParse Successful!\n"
+      deBruijnEval v tree flag
   where
   ts = myLexer s
   showPosToken ((l,c),t) = concat [ show l, ":", show c, "\t", show t ]
 
-analyseTree :: Int -> Program -> IO ()
-analyseTree v tree = do
+deBruijnEval :: Int -> Program -> String -> IO ()
+deBruijnEval v tree flag = do
   case tree of 
     AProgram programTree -> do
-      showTree v programTree
+      -- showTreeLC v programTree
       let indexedTree = toDeBruijn tree
+      case flag of 
+        "db-pars" -> do
+          putStrLn "De Bruijn indices:"
+          showTreeDB v indexedTree
+        _ -> return ()
       let simplifiedDB = evalProgram indexedTree
-      showTree v (fromDeBruijn simplifiedDB)
+      case flag of 
+        "db-eval" -> do
+          putStrLn "De Bruijn indices after evaluated:"
+          showTreeDB v simplifiedDB
+        _ -> return ()
+      let simplifiedLC = fromDeBruijn simplifiedDB
+      case flag of 
+        "final" -> do
+          putStrLn "Evaluated expression in lambda-calculus notation:" 
+          showTreeLC v simplifiedLC
+        _ -> return ()
+      
 
-showTree :: (Show a, Print a) => Int -> a -> IO ()
-showTree v tree = do
+showTreeLC :: (Show a, LCalculus.Print a) => Int -> a -> IO ()
+showTreeLC v tree = do
   putStrV v $ "\n[Abstract Syntax]\n\n" ++ show tree
-  putStrV v $ "\n[Linearized tree]\n\n" ++ printTree tree
+  putStrV v $ "\n[Linearized tree]\n\n" ++ LCalculus.printTree tree
+
+showTreeDB :: (Show a, DBCalculus.Print a) => Int -> a -> IO ()
+showTreeDB v tree = do
+  putStrV v $ "\n[Abstract Syntax]\n\n" ++ show tree
+  putStrV v $ "\n[Linearized tree]\n\n" ++ DBCalculus.printTree tree
 
 usage :: IO ()
 usage = do
@@ -84,7 +104,9 @@ main = do
   args <- getArgs
   case args of
     ["--help"] -> usage
-    []         -> getContents >>= run 2 pProgram
+    ["--final"]         -> getContents >>= run "final" 2 pProgram
+    ["--db-pars"]      -> getContents >>= run "db-pars" 2 pProgram 
+    ["--db-eval"]      -> getContents >>= run "db-eval" 2 pProgram 
     "-s":fs    -> mapM_ (runFile 0 pProgram) fs
     fs         -> mapM_ (runFile 2 pProgram) fs
 

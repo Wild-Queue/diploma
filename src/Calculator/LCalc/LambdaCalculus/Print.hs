@@ -146,20 +146,24 @@ instance Print LCalc.LambdaCalculus.Abs.Program where
 
 instance Print LCalc.LambdaCalculus.Abs.Term where
   prt i = \case
-    LCalc.LambdaCalculus.Abs.Var variable -> prPrec i 0 (concatD [prt 0 variable])
-    LCalc.LambdaCalculus.Abs.IntConst n -> prPrec i 0 (concatD [prt 0 n])
-    LCalc.LambdaCalculus.Abs.DoubleConst d -> prPrec i 0 (concatD [prt 0 d])
-    LCalc.LambdaCalculus.Abs.Binder variable term -> prPrec i 0 (concatD [doc (showString "lambda"), prt 0 variable, doc (showString "."), prt 0 term])
-    LCalc.LambdaCalculus.Abs.LetBinder variable term1 term2 -> prPrec i 0 (concatD [doc (showString "let"), prt 0 variable, doc (showString "="), prt 0 term1, doc (showString "in"), prt 0 term2])
+    LCalc.LambdaCalculus.Abs.Var varident -> prPrec i 0 (concatD [prt 0 varident])
     LCalc.LambdaCalculus.Abs.Application term1 term2 -> prPrec i 0 (concatD [doc (showString "("), prt 0 term1, prt 0 term2, doc (showString ")")])
-    LCalc.LambdaCalculus.Abs.Plus term1 term2 -> prPrec i 0 (concatD [prt 0 term1, doc (showString "+"), prt 0 term2])
-    LCalc.LambdaCalculus.Abs.Minus term1 term2 -> prPrec i 0 (concatD [prt 0 term1, doc (showString "-"), prt 0 term2])
+    LCalc.LambdaCalculus.Abs.Lam pattern_ scopedterm -> prPrec i 0 (concatD [doc (showString "fn"), prt 0 pattern_, doc (showString "=>"), prt 0 scopedterm])
+    LCalc.LambdaCalculus.Abs.Let pattern_ term scopedterm -> prPrec i 0 (concatD [doc (showString "let"), prt 0 pattern_, doc (showString "="), prt 0 term, doc (showString "in"), prt 0 scopedterm])
 
 instance Print [LCalc.LambdaCalculus.Abs.Term] where
   prt _ [] = concatD []
   prt _ [x] = concatD [prt 0 x]
   prt _ (x:xs) = concatD [prt 0 x, doc (showString ";"), prt 0 xs]
 
-instance Print LCalc.LambdaCalculus.Abs.Variable where
+instance Print LCalc.LambdaCalculus.Abs.Pattern where
   prt i = \case
-    LCalc.LambdaCalculus.Abs.Identifier id_ -> prPrec i 0 (concatD [prt 0 id_])
+    LCalc.LambdaCalculus.Abs.PatternVar varident -> prPrec i 0 (concatD [prt 0 varident])
+
+instance Print LCalc.LambdaCalculus.Abs.ScopedTerm where
+  prt i = \case
+    LCalc.LambdaCalculus.Abs.ScopedTerm term -> prPrec i 0 (concatD [prt 0 term])
+
+instance Print LCalc.LambdaCalculus.Abs.VarIdent where
+  prt i = \case
+    LCalc.LambdaCalculus.Abs.VarIdent id_ -> prPrec i 0 (concatD [prt 0 id_])

@@ -38,47 +38,39 @@ toDeBruijn prog = case prog of
 toDeBruijnTerm :: LCalculus.Term -> [(String, Integer)] -> DBCalculus.Term
 toDeBruijnTerm x nameDict = case x of
   LCalculus.Var variable -> DBCalculus.Var (toDeBruijnVariable variable nameDict) 
-  LCalculus.IntConst integer -> DBCalculus.IntConst integer
-  LCalculus.DoubleConst double -> DBCalculus.DoubleConst double
-  LCalculus.Binder variable term -> do 
+  LCalculus.Lam variable term -> do 
     case variable of 
-      LCalculus.Identifier (LCalculus.Ident varName) -> do
-        let dictTermScope = upShiftDict nameDict
-        let dictWithVar = addIndx dictTermScope varName
-        let indexedTerm = toDeBruijnTerm term dictWithVar 
-        DBCalculus.Binder indexedTerm
+      LCalculus.PatternVar (LCalculus.VarIdent (LCalculus.Ident varName)) -> 
+        case term of 
+          LCalculus.ScopedTerm term -> do
+            let dictTermScope = upShiftDict nameDict
+            let dictWithVar = addIndx dictTermScope varName
+            let indexedTerm = toDeBruijnTerm term dictWithVar 
+            DBCalculus.Lam (DBCalculus.ScopedTerm indexedTerm)
   
-  LCalculus.LetBinder variable term1 term2 -> do 
+  LCalculus.Let variable term1 term2 -> do 
     case variable of 
-      LCalculus.Identifier (LCalculus.Ident varName) -> do
-        let dictTermScope = upShiftDict nameDict
-        let dictWithVar = addIndx dictTermScope varName
+      LCalculus.PatternVar (LCalculus.VarIdent (LCalculus.Ident varName)) ->
+        case term2 of 
+          LCalculus.ScopedTerm term2 -> do
+            let dictTermScope = upShiftDict nameDict
+            let dictWithVar = addIndx dictTermScope varName
 
-        let dbTerm1 = toDeBruijnTerm term1 nameDict -- Для первого терма не создается новый scope так как variable там не применяется
-        let dbTerm2 = toDeBruijnTerm term2 dictWithVar
-        
-        DBCalculus.LetBinder dbTerm1 dbTerm2 
+            let dbTerm1 = toDeBruijnTerm term1 nameDict -- Для первого терма не создается новый scope так как variable там не применяется
+            let dbTerm2 = toDeBruijnTerm term2 dictWithVar
+            
+            DBCalculus.Let dbTerm1 (DBCalculus.ScopedTerm dbTerm2) 
     
   LCalculus.Application term1 term2 -> do 
     let updatedTerm1 = toDeBruijnTerm term1 nameDict 
     let updatedTerm2 = toDeBruijnTerm term2 nameDict 
     DBCalculus.Application updatedTerm1 updatedTerm2
 
-  LCalculus.Plus term1 term2 -> do 
-    let updatedTerm1 = toDeBruijnTerm term1 nameDict 
-    let updatedTerm2 = toDeBruijnTerm term2 nameDict
-    DBCalculus.Plus updatedTerm1 updatedTerm2
-
-  LCalculus.Minus term1 term2 ->  do 
-    let updatedTerm1 = toDeBruijnTerm term1 nameDict
-    let updatedTerm2 = toDeBruijnTerm term2 nameDict
-    DBCalculus.Minus updatedTerm1 updatedTerm2
-
-toDeBruijnVariable :: LCalculus.Variable -> [(String, Integer)] -> DBCalculus.Variable
+toDeBruijnVariable :: LCalculus.VarIdent -> [(String, Integer)] -> DBCalculus.VarIdent
 toDeBruijnVariable x nameDict = case x of
-  LCalculus.Identifier ident -> 
+  LCalculus.VarIdent ident -> 
     case toDeBruijnIdent ident of
       DBCalculus.Ident string -> 
         case returnIndex nameDict string of 
-          Nothing -> DBCalculus.Identifier (toDeBruijnIdent ident)
-          Just index -> DBCalculus.Bound index
+          Nothing -> DBCalculus.VarIdent (toDeBruijnIdent ident)
+          Just index -> DBCalculus.DBBound index

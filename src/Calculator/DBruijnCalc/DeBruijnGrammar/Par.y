@@ -11,7 +11,8 @@ module DBruijnCalc.DeBruijnGrammar.Par
   , pProgram
   , pTerm
   , pListTerm
-  , pVariable
+  , pScopedTerm
+  , pVarIdent
   ) where
 
 import Prelude
@@ -24,32 +25,28 @@ import DBruijnCalc.DeBruijnGrammar.Lex
 %name pProgram Program
 %name pTerm Term
 %name pListTerm ListTerm
-%name pVariable Variable
+%name pScopedTerm ScopedTerm
+%name pVarIdent VarIdent
 -- no lexer declaration
 %monad { Err } { (>>=) } { return }
 %tokentype {Token}
 %token
-  '('      { PT _ (TS _ 1)  }
-  ')'      { PT _ (TS _ 2)  }
-  '+'      { PT _ (TS _ 3)  }
-  '-'      { PT _ (TS _ 4)  }
-  '.'      { PT _ (TS _ 5)  }
-  ';'      { PT _ (TS _ 6)  }
-  'BOUND'  { PT _ (TS _ 7)  }
-  'in'     { PT _ (TS _ 8)  }
-  'lambda' { PT _ (TS _ 9)  }
-  'let'    { PT _ (TS _ 10) }
-  L_Ident  { PT _ (TV $$)   }
-  L_doubl  { PT _ (TD $$)   }
-  L_integ  { PT _ (TI $$)   }
+  '('      { PT _ (TS _ 1) }
+  ')'      { PT _ (TS _ 2) }
+  ';'      { PT _ (TS _ 3) }
+  '='      { PT _ (TS _ 4) }
+  '=>'     { PT _ (TS _ 5) }
+  'Bound'  { PT _ (TS _ 6) }
+  'fn'     { PT _ (TS _ 7) }
+  'in'     { PT _ (TS _ 8) }
+  'let'    { PT _ (TS _ 9) }
+  L_Ident  { PT _ (TV $$)  }
+  L_integ  { PT _ (TI $$)  }
 
 %%
 
 Ident :: { DBruijnCalc.DeBruijnGrammar.Abs.Ident }
 Ident  : L_Ident { DBruijnCalc.DeBruijnGrammar.Abs.Ident $1 }
-
-Double  :: { Double }
-Double   : L_doubl  { (read $1) :: Double }
 
 Integer :: { Integer }
 Integer  : L_integ  { (read $1) :: Integer }
@@ -59,14 +56,10 @@ Program : ListTerm { DBruijnCalc.DeBruijnGrammar.Abs.AProgram $1 }
 
 Term :: { DBruijnCalc.DeBruijnGrammar.Abs.Term }
 Term
-  : Variable { DBruijnCalc.DeBruijnGrammar.Abs.Var $1 }
-  | Integer { DBruijnCalc.DeBruijnGrammar.Abs.IntConst $1 }
-  | Double { DBruijnCalc.DeBruijnGrammar.Abs.DoubleConst $1 }
-  | 'lambda' '.' Term { DBruijnCalc.DeBruijnGrammar.Abs.Binder $3 }
-  | 'let' Term 'in' Term { DBruijnCalc.DeBruijnGrammar.Abs.LetBinder $2 $4 }
+  : VarIdent { DBruijnCalc.DeBruijnGrammar.Abs.Var $1 }
   | '(' Term Term ')' { DBruijnCalc.DeBruijnGrammar.Abs.Application $2 $3 }
-  | Term '+' Term { DBruijnCalc.DeBruijnGrammar.Abs.Plus $1 $3 }
-  | Term '-' Term { DBruijnCalc.DeBruijnGrammar.Abs.Minus $1 $3 }
+  | 'fn' '=>' ScopedTerm { DBruijnCalc.DeBruijnGrammar.Abs.Lam $3 }
+  | 'let' '=' Term 'in' ScopedTerm { DBruijnCalc.DeBruijnGrammar.Abs.Let $3 $5 }
   | '(' Term ')' { $2 }
 
 ListTerm :: { [DBruijnCalc.DeBruijnGrammar.Abs.Term] }
@@ -75,10 +68,13 @@ ListTerm
   | Term { (:[]) $1 }
   | Term ';' ListTerm { (:) $1 $3 }
 
-Variable :: { DBruijnCalc.DeBruijnGrammar.Abs.Variable }
-Variable
-  : Ident { DBruijnCalc.DeBruijnGrammar.Abs.Identifier $1 }
-  | 'BOUND' '(' Integer ')' { DBruijnCalc.DeBruijnGrammar.Abs.Bound $3 }
+ScopedTerm :: { DBruijnCalc.DeBruijnGrammar.Abs.ScopedTerm }
+ScopedTerm : Term { DBruijnCalc.DeBruijnGrammar.Abs.ScopedTerm $1 }
+
+VarIdent :: { DBruijnCalc.DeBruijnGrammar.Abs.VarIdent }
+VarIdent
+  : Ident { DBruijnCalc.DeBruijnGrammar.Abs.VarIdent $1 }
+  | 'Bound' '(' Integer ')' { DBruijnCalc.DeBruijnGrammar.Abs.DBBound $3 }
 
 {
 

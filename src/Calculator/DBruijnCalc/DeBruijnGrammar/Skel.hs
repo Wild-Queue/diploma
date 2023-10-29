@@ -25,16 +25,16 @@ transProgram x = case x of
 
 transTerm :: DBruijnCalc.DeBruijnGrammar.Abs.Term -> Result
 transTerm x = case x of
-  DBruijnCalc.DeBruijnGrammar.Abs.Var variable -> failure x
-  DBruijnCalc.DeBruijnGrammar.Abs.IntConst integer -> failure x
-  DBruijnCalc.DeBruijnGrammar.Abs.DoubleConst double -> failure x
-  DBruijnCalc.DeBruijnGrammar.Abs.Binder term -> failure x
-  DBruijnCalc.DeBruijnGrammar.Abs.LetBinder term1 term2 -> failure x
+  DBruijnCalc.DeBruijnGrammar.Abs.Var varident -> failure x
   DBruijnCalc.DeBruijnGrammar.Abs.Application term1 term2 -> failure x
-  DBruijnCalc.DeBruijnGrammar.Abs.Plus term1 term2 -> failure x
-  DBruijnCalc.DeBruijnGrammar.Abs.Minus term1 term2 -> failure x
+  DBruijnCalc.DeBruijnGrammar.Abs.Lam scopedterm -> failure x
+  DBruijnCalc.DeBruijnGrammar.Abs.Let term scopedterm -> failure x
 
-transVariable :: DBruijnCalc.DeBruijnGrammar.Abs.Variable -> Result
-transVariable x = case x of
-  DBruijnCalc.DeBruijnGrammar.Abs.Identifier ident -> failure x
-  DBruijnCalc.DeBruijnGrammar.Abs.Bound integer -> failure x
+transScopedTerm :: DBruijnCalc.DeBruijnGrammar.Abs.ScopedTerm -> Result
+transScopedTerm x = case x of
+  DBruijnCalc.DeBruijnGrammar.Abs.ScopedTerm term -> failure x
+
+transVarIdent :: DBruijnCalc.DeBruijnGrammar.Abs.VarIdent -> Result
+transVarIdent x = case x of
+  DBruijnCalc.DeBruijnGrammar.Abs.VarIdent ident -> failure x
+  DBruijnCalc.DeBruijnGrammar.Abs.DBBound integer -> failure x

@@ -1,1 +1,2 @@
 lambda x . lambda y . x
+fn x => fn y => x

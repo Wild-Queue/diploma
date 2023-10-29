@@ -16,26 +16,17 @@ reserved words excluded.
 
 
 ===Literals===
-Double-precision float literals //Double// have the structure
-indicated by the regular expression ``digit+ '.' digit+ ('e' ('-')? digit+)?`` i.e.\
-two sequences of digits separated by a decimal point, optionally
-followed by an unsigned or negative exponent.
-
-
-Integer literals //Integer// are nonempty sequences of digits.
-
-
 
 
 ===Reserved words and symbols===
 The set of reserved words is the set of terminals appearing in the grammar. Those reserved words that consist of non-letter characters are called symbols, and they are treated in a different way from those that are similar to identifiers. The lexer follows rules familiar from languages like Haskell, C, and Java, including longest match and spacing conventions.
 
 The reserved words used in LambdaCalculus are the following:
-  | ``in`` | ``lambda`` | ``let`` |
+  | ``fn`` | ``in`` | ``let`` |
 
 The symbols used in LambdaCalculus are the following:
-  | . | = | ( | )
-  | + | - | ; |
+  | ( | ) | => | =
+  | ; |  |  |
 
 ===Comments===
 There are no single-line comments in the grammar.There are no multiple-line comments in the grammar.
@@ -47,19 +38,17 @@ and **eps** (empty rule) belong to the BNF notation.
 All other symbols are terminals.
 
   | //Program// | -> | //[Term]//
-  | //Term// | -> | //Variable//
-  |  |  **|**  | //Integer//
-  |  |  **|**  | //Double//
-  |  |  **|**  | ``lambda`` //Variable// ``.`` //Term//
-  |  |  **|**  | ``let`` //Variable// ``=`` //Term// ``in`` //Term//
+  | //Term// | -> | //VarIdent//
   |  |  **|**  | ``(`` //Term// //Term// ``)``
-  |  |  **|**  | //Term// ``+`` //Term//
-  |  |  **|**  | //Term// ``-`` //Term//
+  |  |  **|**  | ``fn`` //Pattern// ``=>`` //ScopedTerm//
+  |  |  **|**  | ``let`` //Pattern// ``=`` //Term// ``in`` //ScopedTerm//
   |  |  **|**  | ``(`` //Term// ``)``
   | //[Term]// | -> | **eps**
   |  |  **|**  | //Term//
   |  |  **|**  | //Term// ``;`` //[Term]//
-  | //Variable// | -> | //Ident//
+  | //Pattern// | -> | //VarIdent//
+  | //ScopedTerm// | -> | //Term//
+  | //VarIdent// | -> | //Ident//
 
 
 

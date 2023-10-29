@@ -1,0 +1,19 @@
+AProgram.       Program ::= [Term] ;
+
+Var.            Term ::= VarIdent ;
+-- Pair.           Term ::= "(" Term "," Term ")" ;
+Application.    Term ::= "(" Term Term ")" ;
+Lam.            Term ::= "fn" Pattern "=>" ScopedTerm ;
+Let.            Term ::= "let" Pattern "=" Term "in" ScopedTerm ;
+_.              Term ::= "(" Term ")";
+separator Term ";";
+
+PatternVar.   Pattern ::= VarIdent ;
+-- PatternPair.  Pattern ::= "(" Pattern "," Pattern ")" ;
+variable binder Pattern ;
+
+ScopedTerm. ScopedTerm ::= Term ;
+variable scope ScopedTerm ;
+
+VarIdent. VarIdent ::= Ident ;
+variable name VarIdent ;

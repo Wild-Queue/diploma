@@ -11,7 +11,9 @@ module LCalc.LambdaCalculus.Par
   , pProgram
   , pTerm
   , pListTerm
-  , pVariable
+  , pPattern
+  , pScopedTerm
+  , pVarIdent
   ) where
 
 import Prelude
@@ -24,49 +26,37 @@ import LCalc.LambdaCalculus.Lex
 %name pProgram Program
 %name pTerm Term
 %name pListTerm ListTerm
-%name pVariable Variable
+%name pPattern Pattern
+%name pScopedTerm ScopedTerm
+%name pVarIdent VarIdent
 -- no lexer declaration
 %monad { Err } { (>>=) } { return }
 %tokentype {Token}
 %token
-  '('      { PT _ (TS _ 1)  }
-  ')'      { PT _ (TS _ 2)  }
-  '+'      { PT _ (TS _ 3)  }
-  '-'      { PT _ (TS _ 4)  }
-  '.'      { PT _ (TS _ 5)  }
-  ';'      { PT _ (TS _ 6)  }
-  '='      { PT _ (TS _ 7)  }
-  'in'     { PT _ (TS _ 8)  }
-  'lambda' { PT _ (TS _ 9)  }
-  'let'    { PT _ (TS _ 10) }
-  L_Ident  { PT _ (TV $$)   }
-  L_doubl  { PT _ (TD $$)   }
-  L_integ  { PT _ (TI $$)   }
+  '('     { PT _ (TS _ 1) }
+  ')'     { PT _ (TS _ 2) }
+  ';'     { PT _ (TS _ 3) }
+  '='     { PT _ (TS _ 4) }
+  '=>'    { PT _ (TS _ 5) }
+  'fn'    { PT _ (TS _ 6) }
+  'in'    { PT _ (TS _ 7) }
+  'let'   { PT _ (TS _ 8) }
+  L_Ident { PT _ (TV $$)  }
 
 %%
 
 Ident :: { LCalc.LambdaCalculus.Abs.Ident }
 Ident  : L_Ident { LCalc.LambdaCalculus.Abs.Ident $1 }
 
-Double  :: { Double }
-Double   : L_doubl  { (read $1) :: Double }
-
-Integer :: { Integer }
-Integer  : L_integ  { (read $1) :: Integer }
-
 Program :: { LCalc.LambdaCalculus.Abs.Program }
 Program : ListTerm { LCalc.LambdaCalculus.Abs.AProgram $1 }
 
 Term :: { LCalc.LambdaCalculus.Abs.Term }
 Term
-  : Variable { LCalc.LambdaCalculus.Abs.Var $1 }
-  | Integer { LCalc.LambdaCalculus.Abs.IntConst $1 }
-  | Double { LCalc.LambdaCalculus.Abs.DoubleConst $1 }
-  | 'lambda' Variable '.' Term { LCalc.LambdaCalculus.Abs.Binder $2 $4 }
-  | 'let' Variable '=' Term 'in' Term { LCalc.LambdaCalculus.Abs.LetBinder $2 $4 $6 }
+  : VarIdent { LCalc.LambdaCalculus.Abs.Var $1 }
   | '(' Term Term ')' { LCalc.LambdaCalculus.Abs.Application $2 $3 }
-  | Term '+' Term { LCalc.LambdaCalculus.Abs.Plus $1 $3 }
-  | Term '-' Term { LCalc.LambdaCalculus.Abs.Minus $1 $3 }
+  | 'fn' Pattern '=>' ScopedTerm { LCalc.LambdaCalculus.Abs.Lam $2 $4 }
+  | 'let' Pattern '=' Term 'in' ScopedTerm { LCalc.LambdaCalculus.Abs.Let $2 $4 $6 }
   | '(' Term ')' { $2 }
 
 ListTerm :: { [LCalc.LambdaCalculus.Abs.Term] }
@@ -75,8 +65,14 @@ ListTerm
   | Term { (:[]) $1 }
   | Term ';' ListTerm { (:) $1 $3 }
 
-Variable :: { LCalc.LambdaCalculus.Abs.Variable }
-Variable : Ident { LCalc.LambdaCalculus.Abs.Identifier $1 }
+Pattern :: { LCalc.LambdaCalculus.Abs.Pattern }
+Pattern : VarIdent { LCalc.LambdaCalculus.Abs.PatternVar $1 }
+
+ScopedTerm :: { LCalc.LambdaCalculus.Abs.ScopedTerm }
+ScopedTerm : Term { LCalc.LambdaCalculus.Abs.ScopedTerm $1 }
+
+VarIdent :: { LCalc.LambdaCalculus.Abs.VarIdent }
+VarIdent : Ident { LCalc.LambdaCalculus.Abs.VarIdent $1 }
 
 {
 
